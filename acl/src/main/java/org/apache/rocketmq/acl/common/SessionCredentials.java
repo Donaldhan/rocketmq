@@ -22,6 +22,9 @@ import java.nio.charset.Charset;
 import java.util.Properties;
 import org.apache.rocketmq.common.MixAll;
 
+/**
+ * 会话证书
+ */
 public class SessionCredentials {
     public static final Charset CHARSET = Charset.forName("UTF-8");
     public static final String ACCESS_KEY = "AccessKey";

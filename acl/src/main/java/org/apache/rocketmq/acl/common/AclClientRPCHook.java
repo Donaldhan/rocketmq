@@ -28,6 +28,9 @@ import static org.apache.rocketmq.acl.common.SessionCredentials.ACCESS_KEY;
 import static org.apache.rocketmq.acl.common.SessionCredentials.SECURITY_TOKEN;
 import static org.apache.rocketmq.acl.common.SessionCredentials.SIGNATURE;
 
+/**
+ *
+ */
 public class AclClientRPCHook implements RPCHook {
     private final SessionCredentials sessionCredentials;
     protected ConcurrentHashMap<Class<? extends CommandCustomHeader>, Field[]> fieldCache =
@@ -37,6 +40,11 @@ public class AclClientRPCHook implements RPCHook {
         this.sessionCredentials = sessionCredentials;
     }
 
+    /**
+     * 使用秘钥key对请求头和body加盐
+     * @param remoteAddr
+     * @param request
+     */
     @Override
     public void doBeforeRequest(String remoteAddr, RemotingCommand request) {
         byte[] total = AclUtils.combineRequestContent(request,
@@ -56,6 +64,13 @@ public class AclClientRPCHook implements RPCHook {
 
     }
 
+    /**
+     * 解析请求头部
+     * @param request
+     * @param ak
+     * @param securityToken
+     * @return
+     */
     protected SortedMap<String, String> parseRequestContent(RemotingCommand request, String ak, String securityToken) {
         CommandCustomHeader header = request.readCustomHeader();
         // Sort property

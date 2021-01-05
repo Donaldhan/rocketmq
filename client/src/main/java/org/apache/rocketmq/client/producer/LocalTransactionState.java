@@ -16,8 +16,24 @@
  */
 package org.apache.rocketmq.client.producer;
 
+import org.apache.rocketmq.common.message.MessageExt;
+
+/**
+ * 本地事务状态
+ */
 public enum LocalTransactionState {
+    /**
+     * 提交事务消息，将消息发送到目的topic
+     */
     COMMIT_MESSAGE,
+    /**
+     * 回滚事务消息， 删除prepare消息
+     */
     ROLLBACK_MESSAGE,
+    /**
+     * 未知事务状态，将调用
+     * @see TransactionListener#checkLocalTransaction(MessageExt)
+     * 方法检查本地事务状态
+     */
     UNKNOW,
 }
