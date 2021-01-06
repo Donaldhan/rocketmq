@@ -315,7 +315,8 @@ public class AsyncTraceDispatcher implements TraceDispatcher {
 
         /**
          * Send message trace data
-         *
+         * 发送最终数据到
+         * @see MixAll#RMQ_SYS_TRACE_TOPIC
          * @param keySet the keyset in this batch(including msgId in original message not offsetMsgId)
          * @param data   the message trace data in this batch
          */

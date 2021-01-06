@@ -47,6 +47,7 @@ public class Validators {
     }
 
     /**
+     * 校验group信息
      * Validate group
      */
     public static void checkGroup(String group) throws MQClientException {
