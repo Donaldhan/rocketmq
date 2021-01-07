@@ -60,10 +60,18 @@ public class TopAddressing {
         return newString;
     }
 
+    /**
+     * @return
+     */
     public final String fetchNSAddr() {
         return fetchNSAddr(true, 3000);
     }
 
+    /**
+     * @param verbose
+     * @param timeoutMills
+     * @return
+     */
     public final String fetchNSAddr(boolean verbose, long timeoutMills) {
         String url = this.wsAddr;
         try {

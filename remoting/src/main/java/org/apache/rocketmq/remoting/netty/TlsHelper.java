@@ -88,6 +88,12 @@ public class TlsHelper {
         TlsHelper.decryptionStrategy = decryptionStrategy;
     }
 
+    /**
+     * @param forClient
+     * @return
+     * @throws IOException
+     * @throws CertificateException
+     */
     public static SslContext buildSslContext(boolean forClient) throws IOException, CertificateException {
         File configFile = new File(TlsSystemConfig.tlsConfigFile);
         extractTlsConfigFromFile(configFile);

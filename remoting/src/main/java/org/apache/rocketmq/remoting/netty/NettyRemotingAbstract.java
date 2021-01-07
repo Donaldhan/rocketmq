@@ -136,7 +136,7 @@ public abstract class NettyRemotingAbstract {
 
     /**
      * Entry of incoming command processing.
-     *
+     * 处理接收到的命令
      * <p>
      * <strong>Note:</strong>
      * The incoming remoting command may be
@@ -185,7 +185,7 @@ public abstract class NettyRemotingAbstract {
 
     /**
      * Process incoming request command issued by remote peer.
-     *
+     * 处理请求命令
      * @param ctx channel handler context.
      * @param cmd request command.
      */
@@ -563,6 +563,9 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /**
+     * netty 事件执行器
+     */
     class NettyEventExecutor extends ServiceThread {
         private final LinkedBlockingQueue<NettyEvent> eventQueue = new LinkedBlockingQueue<NettyEvent>();
         private final int maxSize = 10000;
