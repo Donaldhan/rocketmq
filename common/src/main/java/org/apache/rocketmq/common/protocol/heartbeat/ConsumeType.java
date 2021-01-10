@@ -22,8 +22,14 @@ package org.apache.rocketmq.common.protocol.heartbeat;
 
 public enum ConsumeType {
 
+    /**
+     * 积极性客户端PULL模式
+     */
     CONSUME_ACTIVELY("PULL"),
 
+    /**
+     * 消极性客户端PUSH模式
+     */
     CONSUME_PASSIVELY("PUSH");
 
     private String typeCN;

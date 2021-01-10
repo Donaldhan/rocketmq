@@ -246,7 +246,7 @@ public class MQClientInstance {
                     this.startScheduledTask();
                     // Start pull service
                     this.pullMessageService.start();
-                    // Start rebalance service
+                    // Start rebalance serviceMQClientInstance
                     this.rebalanceService.start();
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
@@ -295,7 +295,7 @@ public class MQClientInstance {
                 }
             }
         }, 10, this.clientConfig.getPollNameServerInterval(), TimeUnit.MILLISECONDS);
-       //TODO
+       //移除离线的broker，发送心跳到所有broker，  注册客户端消息过滤器到， FilterServer（5.0.0版本已经移除）
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -308,7 +308,7 @@ public class MQClientInstance {
                 }
             }
         }, 1000, this.clientConfig.getHeartbeatBrokerInterval(), TimeUnit.MILLISECONDS);
-
+        //持久化所有消费者,消费的队列的offset
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -320,7 +320,7 @@ public class MQClientInstance {
                 }
             }
         }, 1000 * 10, this.clientConfig.getPersistConsumerOffsetInterval(), TimeUnit.MILLISECONDS);
-
+        //TODO
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -380,6 +380,7 @@ public class MQClientInstance {
     }
 
     /**
+     * 移除离线的broker
      * Remove offline broker
      */
     private void cleanOfflineBroker() {
@@ -464,6 +465,10 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     *  1.发送心跳到所有broker
+     *  2.注册客户端消息过滤器到， FilterServer
+     */
     public void sendHeartbeatToAllBrokerWithLock() {
         if (this.lockHeartbeat.tryLock()) {
             try {
@@ -479,11 +484,15 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 持久化所有消费者,消费的队列的offset, 有本地持久化，和远程持久化两种，优先持久化到master，如果master掉线，则持久化到slave。
+     */
     private void persistAllConsumerOffset() {
         Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
             Entry<String, MQConsumerInner> entry = it.next();
             MQConsumerInner impl = entry.getValue();
+            //持久化消费者所有消费的队列的offset
             impl.persistConsumerOffset();
         }
     }
@@ -513,6 +522,11 @@ public class MQClientInstance {
         return updateTopicRouteInfoFromNameServer(topic, false, null);
     }
 
+    /**
+     * broker 地址 是否存在路由表中
+     * @param addr
+     * @return
+     */
     private boolean isBrokerAddrExistInTopicRouteTable(final String addr) {
         Iterator<Entry<String, TopicRouteData>> it = this.topicRouteTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -531,6 +545,9 @@ public class MQClientInstance {
         return false;
     }
 
+    /**
+     * 发送心跳到所有broker
+     */
     private void sendHeartbeatToAllBroker() {
         final HeartbeatData heartbeatData = this.prepareHeartbeatData();
         final boolean producerEmpty = heartbeatData.getProducerDataSet().isEmpty();
@@ -582,6 +599,9 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     *  注册客户端消息过滤器到， FilterServer
+     */
     private void uploadFilterClassSource() {
         Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -698,6 +718,10 @@ public class MQClientInstance {
         return false;
     }
 
+    /**
+     * 准备心跳数据
+     * @return
+     */
     private HeartbeatData prepareHeartbeatData() {
         HeartbeatData heartbeatData = new HeartbeatData();
 
@@ -749,6 +773,7 @@ public class MQClientInstance {
         return false;
     }
     /**
+     * 注册客户端消息过滤器到， FilterServer
      * This method will be removed in the version 5.0.0,because filterServer was removed,and method <code>subscribe(final String topic, final MessageSelector messageSelector)</code>
      * is recommended.
      */
@@ -1005,6 +1030,10 @@ public class MQClientInstance {
         return this.consumerTable.get(group);
     }
 
+    /**
+     * @param brokerName
+     * @return
+     */
     public FindBrokerResult findBrokerAddressInAdmin(final String brokerName) {
         String brokerAddr = null;
         boolean slave = false;
@@ -1074,6 +1103,11 @@ public class MQClientInstance {
         return null;
     }
 
+    /**
+     * @param brokerName
+     * @param brokerAddr
+     * @return
+     */
     public int findBrokerVersion(String brokerName, String brokerAddr) {
         if (this.brokerVersionTable.containsKey(brokerName)) {
             if (this.brokerVersionTable.get(brokerName).containsKey(brokerAddr)) {

@@ -111,6 +111,10 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
         return -1;
     }
 
+    /**
+     * 持久化消费者所有消费的队列的offset
+     * @param mqs
+     */
     @Override
     public void persistAll(Set<MessageQueue> mqs) {
         if (null == mqs || mqs.isEmpty())
@@ -189,6 +193,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
     /**
      * Update the Consumer Offset in one way, once the Master is off, updated to Slave,
      * here need to be optimized.
+     * 使用oneway方式，更新消费者的offset，一旦master掉线，将更新的slave，不过这里需要优化
      */
     private void updateConsumeOffsetToBroker(MessageQueue mq, long offset) throws RemotingException,
         MQBrokerException, InterruptedException, MQClientException {

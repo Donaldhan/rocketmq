@@ -32,6 +32,10 @@ public interface MQConsumerInner {
 
     MessageModel messageModel();
 
+    /**
+     * 客户端类型
+     * @return
+     */
     ConsumeType consumeType();
 
     ConsumeFromWhere consumeFromWhere();
@@ -40,8 +44,16 @@ public interface MQConsumerInner {
 
     void doRebalance();
 
+    /**
+     * 持久化消息offset
+     */
     void persistConsumerOffset();
 
+    /**
+     * 更新tipic订阅信息
+     * @param topic
+     * @param info
+     */
     void updateTopicSubscribeInfo(final String topic, final Set<MessageQueue> info);
 
     boolean isSubscribeTopicNeedUpdate(final String topic);
