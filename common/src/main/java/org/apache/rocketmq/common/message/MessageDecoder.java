@@ -123,10 +123,20 @@ public class MessageDecoder {
         return decode(byteBuffer, true, true, false);
     }
 
+    /**
+     * @param byteBuffer
+     * @param readBody
+     * @return
+     */
     public static MessageExt clientDecode(java.nio.ByteBuffer byteBuffer, final boolean readBody) {
         return decode(byteBuffer, readBody, true, true);
     }
 
+    /**
+     * @param byteBuffer
+     * @param readBody
+     * @return
+     */
     public static MessageExt decode(java.nio.ByteBuffer byteBuffer, final boolean readBody) {
         return decode(byteBuffer, readBody, true, false);
     }
@@ -244,6 +254,13 @@ public class MessageDecoder {
         return decode(byteBuffer, readBody, deCompressBody, false);
     }
 
+    /**
+     * @param byteBuffer
+     * @param readBody
+     * @param deCompressBody
+     * @param isClient
+     * @return
+     */
     public static MessageExt decode(
         java.nio.ByteBuffer byteBuffer, final boolean readBody, final boolean deCompressBody, final boolean isClient) {
         try {
@@ -364,10 +381,19 @@ public class MessageDecoder {
         return null;
     }
 
+    /**
+     * @param byteBuffer
+     * @return
+     */
     public static List<MessageExt> decodes(java.nio.ByteBuffer byteBuffer) {
         return decodes(byteBuffer, true);
     }
 
+    /**
+     * @param byteBuffer
+     * @param readBody
+     * @return
+     */
     public static List<MessageExt> decodes(java.nio.ByteBuffer byteBuffer, final boolean readBody) {
         List<MessageExt> msgExts = new ArrayList<MessageExt>();
         while (byteBuffer.hasRemaining()) {

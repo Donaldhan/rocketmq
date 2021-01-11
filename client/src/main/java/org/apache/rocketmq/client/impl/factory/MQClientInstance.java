@@ -242,11 +242,12 @@ public class MQClientInstance {
                     // Start request-response channel, 启动netty client
                     //org.apache.rocketmq.remoting.netty.NettyRemotingClient.start
                     this.mQClientAPIImpl.start();
-                    // Start various schedule tasks TODO
+                    // Start various schedule tasks， 启动相关调度任务
                     this.startScheduledTask();
-                    // Start pull service
+                    // Start pull service， 启动pull 消息服务
+                    //org.apache.rocketmq.client.impl.consumer.PullMessageService.run
                     this.pullMessageService.start();
-                    // Start rebalance serviceMQClientInstance
+                    // Start rebalance serviceMQClientInstance TODO
                     this.rebalanceService.start();
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
@@ -320,7 +321,7 @@ public class MQClientInstance {
                 }
             }
         }, 1000 * 10, this.clientConfig.getPersistConsumerOffsetInterval(), TimeUnit.MILLISECONDS);
-        //TODO
+        //调整线程池， unused
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -497,6 +498,9 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     *
+     */
     public void adjustThreadPool() {
         Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -1026,6 +1030,11 @@ public class MQClientInstance {
         return this.producerTable.get(group);
     }
 
+    /**
+     * 选择group的消费者
+     * @param group
+     * @return
+     */
     public MQConsumerInner selectConsumer(final String group) {
         return this.consumerTable.get(group);
     }
