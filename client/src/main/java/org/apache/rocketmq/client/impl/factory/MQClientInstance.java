@@ -247,9 +247,10 @@ public class MQClientInstance {
                     // Start pull service， 启动pull 消息服务
                     //org.apache.rocketmq.client.impl.consumer.PullMessageService.run
                     this.pullMessageService.start();
-                    // Start rebalance serviceMQClientInstance TODO
+                    // Start rebalance serviceMQClientInstance
+                    // 重新负载均衡topic消费者的消费队列
                     this.rebalanceService.start();
-                    // Start push service
+                    // Start push service 启动推送服务
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);
                     this.serviceState = ServiceState.RUNNING;
@@ -1013,6 +1014,9 @@ public class MQClientInstance {
         this.rebalanceService.wakeup();
     }
 
+    /**
+     * 重新负载均衡topic消费者的消费队列
+     */
     public void doRebalance() {
         for (Map.Entry<String, MQConsumerInner> entry : this.consumerTable.entrySet()) {
             MQConsumerInner impl = entry.getValue();
@@ -1127,6 +1131,12 @@ public class MQClientInstance {
         return 0;
     }
 
+    /**
+     * 获取topic对应消费分组的消费者id
+     * @param topic
+     * @param group
+     * @return
+     */
     public List<String> findConsumerIdList(final String topic, final String group) {
         String brokerAddr = this.findBrokerAddrByTopic(topic);
         if (null == brokerAddr) {
