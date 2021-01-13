@@ -45,6 +45,7 @@ public class MQClientManager {
     }
 
     /**
+     * 创建MQ客户端
      * @param clientConfig
      * @param rpcHook
      * @return

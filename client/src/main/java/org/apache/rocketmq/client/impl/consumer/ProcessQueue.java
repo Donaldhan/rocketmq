@@ -75,6 +75,7 @@ public class ProcessQueue {
     }
 
     /**
+     * 清除过期消息
      * @param pushConsumer
      */
     public void cleanExpiredMsg(DefaultMQPushConsumer pushConsumer) {
@@ -102,7 +103,7 @@ public class ProcessQueue {
             }
 
             try {
-
+                //消费者将消息back broker， broker 将会重新投递？？？ 这个要看broker的处理逻辑 TODO
                 pushConsumer.sendMessageBack(msg, 3);
                 log.info("send expire msg back. topic={}, msgId={}, storeHost={}, queueId={}, queueOffset={}", msg.getTopic(), msg.getMsgId(), msg.getStoreHost(), msg.getQueueId(), msg.getQueueOffset());
                 try {
@@ -190,6 +191,10 @@ public class ProcessQueue {
         return 0;
     }
 
+    /**
+     * @param msgs
+     * @return
+     */
     public long removeMessage(final List<MessageExt> msgs) {
         long result = -1;
         final long now = System.currentTimeMillis();
