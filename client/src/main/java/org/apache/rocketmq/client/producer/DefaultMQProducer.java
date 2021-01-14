@@ -286,7 +286,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Same to {@link #send(Message)} with send timeout specified in addition.
-     *
+     * 超时发送消息
      * @param msg Message to send.
      * @param timeout send timeout.
      * @return {@link SendResult} instance to inform senders details of the deliverable, say Message ID of the message,
@@ -305,10 +305,10 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     /**
      * Send message to broker asynchronously.
      * </p>
-     *
+     * 异步发送消息到broker
      * This method returns immediately. On sending completion, <code>sendCallback</code> will be executed.
      * </p>
-     *
+     * 方法立即返回，在发送完成后，回调将别被执行
      * Similar to {@link #send(Message)}, internal implementation would potentially retry up to
      * {@link #retryTimesWhenSendAsyncFailed} times before claiming sending failure, which may yield message duplication
      * and application developers are the one to resolve this potential issue.
@@ -344,7 +344,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     /**
      * Similar to <a href="https://en.wikipedia.org/wiki/User_Datagram_Protocol">UDP</a>, this method won't wait for
      * acknowledgement from broker before return. Obviously, it has maximums throughput yet potentials of message loss.
-     *
+     * 此方法，不会等待broker的相应，就会返回。保证了最大吞吐量，但是可能存在潜在的消息丢失;
      * @param msg Message to send.
      * @throws MQClientException if there is any client error.
      * @throws RemotingException if there is any network-tier error.
@@ -442,7 +442,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Same to {@link #send(Message)} with message queue selector specified.
-     *
+     *针对顺序消费的消息，消息选择器根据参数，同一类消息发送到同一个消息队列
      * @param msg Message to send.
      * @param selector Message queue selector, through which we get target message queue to deliver message to.
      * @param arg Argument to work along with message queue selector.

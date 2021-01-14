@@ -145,6 +145,10 @@ public class Message implements Serializable {
         return 0;
     }
 
+    /**
+     * 设置延迟消费时间
+     * @param level
+     */
     public void setDelayTimeLevel(int level) {
         this.putProperty(MessageConst.PROPERTY_DELAY_TIME_LEVEL, String.valueOf(level));
     }

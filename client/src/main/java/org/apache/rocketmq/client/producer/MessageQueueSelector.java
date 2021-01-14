@@ -21,5 +21,12 @@ import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 public interface MessageQueueSelector {
+    /**
+     * 根据参数选择消息将要发送的topic队列
+     * @param mqs
+     * @param msg
+     * @param arg
+     * @return
+     */
     MessageQueue select(final List<MessageQueue> mqs, final Message msg, final Object arg);
 }
