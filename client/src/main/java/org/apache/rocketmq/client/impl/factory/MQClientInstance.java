@@ -429,6 +429,10 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 检查客户端的在broker中配置
+     * @throws MQClientException
+     */
     public void checkClientInBroker() throws MQClientException {
         Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();
 
@@ -904,6 +908,12 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 注册消费者
+     * @param group
+     * @param consumer
+     * @return
+     */
     public boolean registerConsumer(final String group, final MQConsumerInner consumer) {
         if (null == group || null == consumer) {
             return false;
@@ -1010,6 +1020,9 @@ public class MQClientInstance {
         this.adminExtTable.remove(group);
     }
 
+    /**
+     *
+     */
     public void rebalanceImmediately() {
         this.rebalanceService.wakeup();
     }

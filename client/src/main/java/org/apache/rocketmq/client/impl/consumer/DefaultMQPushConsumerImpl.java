@@ -650,7 +650,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 }
                 //启动消费者服务
                 this.consumeMessageService.start();
-                //TODO
+                //注册消费者
                 boolean registerOK = mQClientFactory.registerConsumer(this.defaultMQPushConsumer.getConsumerGroup(), this);
                 if (!registerOK) {
                     this.serviceState = ServiceState.CREATE_JUST;
@@ -674,10 +674,14 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
             default:
                 break;
         }
-
+        //更新topic路由信息
         this.updateTopicSubscribeInfoWhenSubscriptionChanged();
+        //检查客户端的在broker中配置
         this.mQClientFactory.checkClientInBroker();
+        //发送心跳到所有broker
         this.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
+        //唤醒负载均衡服务，
+        //org.apache.rocketmq.client.impl.consumer.RebalanceService.run
         this.mQClientFactory.rebalanceImmediately();
     }
 
@@ -893,6 +897,9 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
         return messageListenerInner;
     }
 
+    /**
+     * 更新topic路由信息
+     */
     private void updateTopicSubscribeInfoWhenSubscriptionChanged() {
         Map<String, SubscriptionData> subTable = this.getSubscriptionInner();
         if (subTable != null) {

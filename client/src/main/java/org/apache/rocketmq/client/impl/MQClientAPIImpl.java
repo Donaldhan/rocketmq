@@ -2230,6 +2230,19 @@ public class MQClientAPIImpl {
         throw new MQClientException(response.getCode(), response.getRemark());
     }
 
+    /**
+     * 检查客户端的在broker中配置
+     * @param brokerAddr
+     * @param consumerGroup
+     * @param clientId
+     * @param subscriptionData
+     * @param timeoutMillis
+     * @throws InterruptedException
+     * @throws RemotingTimeoutException
+     * @throws RemotingSendRequestException
+     * @throws RemotingConnectException
+     * @throws MQClientException
+     */
     public void checkClientInBroker(final String brokerAddr, final String consumerGroup,
         final String clientId, final SubscriptionData subscriptionData,
         final long timeoutMillis)
