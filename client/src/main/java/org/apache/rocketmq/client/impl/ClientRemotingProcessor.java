@@ -60,19 +60,23 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         RemotingCommand request) throws RemotingCommandException {
         switch (request.getCode()) {
             case RequestCode.CHECK_TRANSACTION_STATE:
+                //检查事务状态
                 return this.checkTransactionState(ctx, request);
-                //TODO read
             case RequestCode.NOTIFY_CONSUMER_IDS_CHANGED:
+                //通知消费者id改变, 重新负载均衡
                 return this.notifyConsumerIdsChanged(ctx, request);
             case RequestCode.RESET_CONSUMER_CLIENT_OFFSET:
+                //重置消费值offset
                 return this.resetOffset(ctx, request);
             case RequestCode.GET_CONSUMER_STATUS_FROM_CLIENT:
+                //获取消费者状态
                 return this.getConsumeStatus(ctx, request);
 
             case RequestCode.GET_CONSUMER_RUNNING_INFO:
+                //获取消费运行信息
                 return this.getConsumerRunningInfo(ctx, request);
-
             case RequestCode.CONSUME_MESSAGE_DIRECTLY:
+                //直接消费消息
                 return this.consumeMessageDirectly(ctx, request);
             default:
                 break;
@@ -108,6 +112,7 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
                 MQProducerInner producer = this.mqClientFactory.selectProducer(group);
                 if (producer != null) {
                     final String addr = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+                    //检查事务状态
                     producer.checkTransactionState(addr, messageExt, requestHeader);
                 } else {
                     log.debug("checkTransactionState, pick producer by group[{}] failed", group);
@@ -122,6 +127,13 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         return null;
     }
 
+    /**
+     * 通知消费者id改变
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand notifyConsumerIdsChanged(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         try {
@@ -130,6 +142,7 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
             log.info("receive broker's notification[{}], the consumer group: {} changed, rebalance immediately",
                 RemotingHelper.parseChannelRemoteAddr(ctx.channel()),
                 requestHeader.getConsumerGroup());
+            //重新负载均衡
             this.mqClientFactory.rebalanceImmediately();
         } catch (Exception e) {
             log.error("notifyConsumerIdsChanged exception", RemotingHelper.exceptionSimpleDesc(e));
@@ -137,6 +150,12 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         return null;
     }
 
+    /**
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand resetOffset(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final ResetOffsetRequestHeader requestHeader =
@@ -168,6 +187,12 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     private RemotingCommand getConsumerRunningInfo(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -192,6 +217,13 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 直接消费消息
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     private RemotingCommand consumeMessageDirectly(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);

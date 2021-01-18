@@ -1182,6 +1182,11 @@ public class MQClientInstance {
         return null;
     }
 
+    /**
+     * @param topic
+     * @param group
+     * @param offsetTable
+     */
     public void resetOffset(String topic, String group, Map<MessageQueue, Long> offsetTable) {
         DefaultMQPushConsumerImpl consumer = null;
         try {
@@ -1230,6 +1235,11 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * @param topic
+     * @param group
+     * @return
+     */
     public Map<MessageQueue, Long> getConsumerStatus(String topic, String group) {
         MQConsumerInner impl = this.consumerTable.get(group);
         if (impl != null && impl instanceof DefaultMQPushConsumerImpl) {
@@ -1275,6 +1285,13 @@ public class MQClientInstance {
         return topicRouteTable;
     }
 
+    /**
+     * 直接消费消息
+     * @param msg
+     * @param consumerGroup
+     * @param brokerName
+     * @return
+     */
     public ConsumeMessageDirectlyResult consumeMessageDirectly(final MessageExt msg,
         final String consumerGroup,
         final String brokerName) {
@@ -1289,6 +1306,11 @@ public class MQClientInstance {
         return null;
     }
 
+    /**
+     * 获取消费运行信息
+     * @param consumerGroup
+     * @return
+     */
     public ConsumerRunningInfo consumerRunningInfo(final String consumerGroup) {
         MQConsumerInner mqConsumerInner = this.consumerTable.get(consumerGroup);
 

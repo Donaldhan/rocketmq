@@ -29,6 +29,9 @@ public class TransactionMQProducer extends DefaultMQProducer {
 
     private ExecutorService executorService;
 
+    /**
+     * 事务监听器
+     */
     private TransactionListener transactionListener;
 
     public TransactionMQProducer() {
