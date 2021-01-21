@@ -41,6 +41,9 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.srvutil.ShutdownHookThread;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ */
 public class NamesrvStartup {
 
     private static InternalLogger log;
@@ -55,6 +58,7 @@ public class NamesrvStartup {
 
         try {
             NamesrvController controller = createNamesrvController(args);
+            //TODO
             start(controller);
             String tip = "The Name Server boot success. serializeType=" + RemotingCommand.getSerializeTypeConfigInThisServer();
             log.info(tip);
@@ -68,6 +72,14 @@ public class NamesrvStartup {
         return null;
     }
 
+    /**
+     * namesrvConfig，nettyServerConfig
+     * 根据启动namesrv的命令行参数，配置namesrv 和 netty server
+     * @param args
+     * @return
+     * @throws IOException
+     * @throws JoranException
+     */
     public static NamesrvController createNamesrvController(String[] args) throws IOException, JoranException {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
         //PackageConflictDetect.detectFastjson();
@@ -83,6 +95,7 @@ public class NamesrvStartup {
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         nettyServerConfig.setListenPort(9876);
         if (commandLine.hasOption('c')) {
+            //加载配置文件 mqnamesrv
             String file = commandLine.getOptionValue('c');
             if (file != null) {
                 InputStream in = new BufferedInputStream(new FileInputStream(file));
@@ -99,6 +112,7 @@ public class NamesrvStartup {
         }
 
         if (commandLine.hasOption('p')) {
+            //打印配置
             InternalLogger console = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_CONSOLE_NAME);
             MixAll.printObjectProperties(console, namesrvConfig);
             MixAll.printObjectProperties(console, nettyServerConfig);
@@ -131,6 +145,11 @@ public class NamesrvStartup {
         return controller;
     }
 
+    /**
+     * @param controller
+     * @return
+     * @throws Exception
+     */
     public static NamesrvController start(final NamesrvController controller) throws Exception {
 
         if (null == controller) {
