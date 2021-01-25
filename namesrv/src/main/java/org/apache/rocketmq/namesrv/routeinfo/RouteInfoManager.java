@@ -45,15 +45,33 @@ import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+/**
+ * 路由信息管理器
+ */
 public class RouteInfoManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
     private final static long BROKER_CHANNEL_EXPIRED_TIME = 1000 * 60 * 2;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final HashMap<String/* topic */, List<QueueData>> topicQueueTable;
-    private final HashMap<String/* brokerName */, BrokerData> brokerAddrTable;
-    private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;
-    private final HashMap<String/* brokerAddr */, BrokerLiveInfo> brokerLiveTable;
-    private final HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
+    /**
+     * topic->队列路由表,Key:topic
+     */
+    private final HashMap<String, List<QueueData>> topicQueueTable;
+    /**
+     * broker地址表,Key:brokerName
+     */
+    private final HashMap<String, BrokerData> brokerAddrTable;
+    /**
+     * 族地址表,Key:clusterName, Vaule：Set<brokerName>
+     */
+    private final HashMap<String, Set<String>> clusterAddrTable;
+    /**
+     * 存活的broker表，Key:brokerAddr
+     */
+    private final HashMap<String, BrokerLiveInfo> brokerLiveTable;
+    /**
+     * 过滤路由表， Key：brokerAddr， Value：Filter Server
+     */
+    private final HashMap<String, List<String>> filterServerTable;
 
     public RouteInfoManager() {
         this.topicQueueTable = new HashMap<String, List<QueueData>>(1024);
@@ -440,9 +458,17 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * 通道销毁， 移除broker路由表中，及存活表中移除对应的broker；
+     * 如果broker表中存在对应的broker，移除成功，需要从topic队列表中移除
+     * broker关联的队列
+     * @param remoteAddr
+     * @param channel
+     */
     public void onChannelDestroy(String remoteAddr, Channel channel) {
         String brokerAddrFound = null;
         if (channel != null) {
+            //有限从通道获取地址
             try {
                 try {
                     this.lock.readLock().lockInterruptibly();
@@ -474,10 +500,12 @@ public class RouteInfoManager {
             try {
                 try {
                     this.lock.writeLock().lockInterruptibly();
+                    //从broker存活表，及过滤server表中移除响应的broker
                     this.brokerLiveTable.remove(brokerAddrFound);
                     this.filterServerTable.remove(brokerAddrFound);
                     String brokerNameFound = null;
                     boolean removeBrokerName = false;
+                    //从broker地址表中移除broker
                     Iterator<Entry<String, BrokerData>> itBrokerAddrTable =
                         this.brokerAddrTable.entrySet().iterator();
                     while (itBrokerAddrTable.hasNext() && (null == brokerNameFound)) {
@@ -526,7 +554,7 @@ public class RouteInfoManager {
                             }
                         }
                     }
-
+                    //如果broker成功移除，则移除从topic队列路由表中，移除broker对应的队列
                     if (removeBrokerName) {
                         Iterator<Entry<String, List<QueueData>>> itTopicQueueTable =
                             this.topicQueueTable.entrySet().iterator();
@@ -752,6 +780,9 @@ public class RouteInfoManager {
     }
 }
 
+/**
+ * broker存活信息
+ */
 class BrokerLiveInfo {
     private long lastUpdateTimestamp;
     private DataVersion dataVersion;

@@ -28,14 +28,29 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * 配置
+ */
 public class Configuration {
 
     private final InternalLogger log;
 
+    /**
+     * 配置对象
+     */
     private List<Object> configObjectList = new ArrayList<Object>(4);
+    /**
+     * 存储路径
+     */
     private String storePath;
     private boolean storePathFromConfig = false;
+    /**
+     * 存储路径对象
+     */
     private Object storePathObject;
+    /**
+     * 存储对象Field
+     */
     private Field storePathField;
     private DataVersion dataVersion = new DataVersion();
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -65,7 +80,7 @@ public class Configuration {
 
     /**
      * register config object
-     *
+     * 注册配置对象
      * @return the current Configuration object
      */
     public Configuration registerConfig(Object configObject) {
@@ -75,9 +90,7 @@ public class Configuration {
             try {
 
                 Properties registerProps = MixAll.object2Properties(configObject);
-
                 merge(registerProps, this.allConfigs);
-
                 configObjectList.add(configObject);
             } finally {
                 readWriteLock.writeLock().unlock();
@@ -115,7 +128,7 @@ public class Configuration {
 
     /**
      * The store path will be gotten from the field of object.
-     *
+     * 配置对象的存储路径Field
      * @throws java.lang.RuntimeException if the field of object is not exist.
      */
     public void setStorePathFromConfig(Object object, String fieldName) {
@@ -275,6 +288,11 @@ public class Configuration {
         return stringBuilder.toString();
     }
 
+    /**
+     * 合并属性
+     * @param from
+     * @param to
+     */
     private void merge(Properties from, Properties to) {
         for (Object key : from.keySet()) {
             Object fromObj = from.get(key), toObj = to.get(key);

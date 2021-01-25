@@ -57,6 +57,7 @@ public class NamesrvStartup {
     public static NamesrvController main0(String[] args) {
 
         try {
+            // 根据启动namesrv的命令行参数，配置namesrv 和 netty server
             NamesrvController controller = createNamesrvController(args);
             //TODO
             start(controller);
@@ -75,6 +76,10 @@ public class NamesrvStartup {
     /**
      * namesrvConfig，nettyServerConfig
      * 根据启动namesrv的命令行参数，配置namesrv 和 netty server
+     * # single
+     * nohup sh bin/mqnamesrv &
+     * # DLedger
+     * nohup sh bin/mqbroker   -c conf/dledger/broker-n0.conf  > broker.log &
      * @param args
      * @return
      * @throws IOException
