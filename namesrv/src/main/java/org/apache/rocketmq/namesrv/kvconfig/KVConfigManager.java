@@ -173,6 +173,11 @@ public class KVConfigManager {
         return null;
     }
 
+    /**
+     * @param namespace
+     * @param key
+     * @return
+     */
     public String getKVConfig(final String namespace, final String key) {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -191,6 +196,9 @@ public class KVConfigManager {
         return null;
     }
 
+    /**
+     * 打印配置
+     */
     public void printAllPeriodically() {
         try {
             this.lock.readLock().lockInterruptibly();

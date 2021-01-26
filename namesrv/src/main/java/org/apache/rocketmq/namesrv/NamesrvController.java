@@ -89,17 +89,18 @@ public class NamesrvController {
     }
 
     /**
+     * 初始化name service 控制器
      * @return
      */
     public boolean initialize() {
-
+        //从配置文件加载配置
         this.kvConfigManager.load();
 
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
         this.remotingExecutor =
             Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
-
+        //注册请求处理器
         this.registerProcessor();
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -159,6 +160,9 @@ public class NamesrvController {
         return true;
     }
 
+    /**
+     * 注册请求处理器
+     */
     private void registerProcessor() {
         if (namesrvConfig.isClusterTest()) {
 
@@ -170,6 +174,9 @@ public class NamesrvController {
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public void start() throws Exception {
         this.remotingServer.start();
 
@@ -178,6 +185,9 @@ public class NamesrvController {
         }
     }
 
+    /**
+     * 关闭控制器
+     */
     public void shutdown() {
         this.remotingServer.shutdown();
         this.remotingExecutor.shutdown();

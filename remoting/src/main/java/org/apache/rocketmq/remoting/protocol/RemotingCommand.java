@@ -78,6 +78,9 @@ public class RemotingCommand {
     private int opaque = requestId.getAndIncrement();
     private int flag = 0;
     private String remark;
+    /**
+     * 拓展字段
+     */
     private HashMap<String, String> extFields;
     private transient CommandCustomHeader customHeader;
 
@@ -112,6 +115,10 @@ public class RemotingCommand {
         }
     }
 
+    /**
+     * @param classHeader
+     * @return
+     */
     public static RemotingCommand createResponseCommand(Class<? extends CommandCustomHeader> classHeader) {
         return createResponseCommand(RemotingSysResponseCode.SYSTEM_ERROR, "not set any response code", classHeader);
     }

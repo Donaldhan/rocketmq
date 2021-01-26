@@ -59,7 +59,7 @@ public class NamesrvStartup {
         try {
             // 根据启动namesrv的命令行参数，配置namesrv 和 netty server
             NamesrvController controller = createNamesrvController(args);
-            //TODO
+            //启动name service
             start(controller);
             String tip = "The Name Server boot success. serializeType=" + RemotingCommand.getSerializeTypeConfigInThisServer();
             log.info(tip);
@@ -151,6 +151,7 @@ public class NamesrvStartup {
     }
 
     /**
+     * 启动name service
      * @param controller
      * @return
      * @throws Exception
@@ -180,6 +181,9 @@ public class NamesrvStartup {
         return controller;
     }
 
+    /**
+     * @param controller
+     */
     public static void shutdown(final NamesrvController controller) {
         controller.shutdown();
     }

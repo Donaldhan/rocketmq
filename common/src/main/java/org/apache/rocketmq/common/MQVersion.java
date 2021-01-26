@@ -29,6 +29,10 @@ public class MQVersion {
         return Version.values()[value].name();
     }
 
+    /**
+     * @param value
+     * @return
+     */
     public static Version value2Version(int value) {
         int length = Version.values().length;
         if (value >= length) {

@@ -117,6 +117,18 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * 注册broker
+     * @param clusterName
+     * @param brokerAddr
+     * @param brokerName
+     * @param brokerId
+     * @param haServerAddr
+     * @param topicConfigWrapper
+     * @param filterServerList
+     * @param channel
+     * @return
+     */
     public RegisterBrokerResult registerBroker(
         final String clusterName,
         final String brokerAddr,
@@ -212,11 +224,21 @@ public class RouteInfoManager {
         return result;
     }
 
+    /**
+     * 判断broker topic的配置是否改变
+     * @param brokerAddr
+     * @param dataVersion
+     * @return
+     */
     public boolean isBrokerTopicConfigChanged(final String brokerAddr, final DataVersion dataVersion) {
         DataVersion prev = queryBrokerTopicConfig(brokerAddr);
         return null == prev || !prev.equals(dataVersion);
     }
 
+    /**
+     * @param brokerAddr
+     * @return
+     */
     public DataVersion queryBrokerTopicConfig(final String brokerAddr) {
         BrokerLiveInfo prev = this.brokerLiveTable.get(brokerAddr);
         if (prev != null) {
@@ -225,6 +247,10 @@ public class RouteInfoManager {
         return null;
     }
 
+    /**
+     * 更新broker时间戳
+     * @param brokerAddr
+     */
     public void updateBrokerInfoUpdateTimestamp(final String brokerAddr) {
         BrokerLiveInfo prev = this.brokerLiveTable.get(brokerAddr);
         if (prev != null) {
@@ -784,7 +810,13 @@ public class RouteInfoManager {
  * broker存活信息
  */
 class BrokerLiveInfo {
+    /**
+     * 上次更新时间戳
+     */
     private long lastUpdateTimestamp;
+    /**
+     * 数据版本
+     */
     private DataVersion dataVersion;
     private Channel channel;
     private String haServerAddr;

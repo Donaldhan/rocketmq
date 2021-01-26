@@ -296,6 +296,7 @@ public abstract class NettyRemotingAbstract {
 
     /**
      * Execute callback in callback executor. If callback executor is null, run directly in current thread
+     * 执行回调，如果回调执行器为空，则在当前线程执行
      */
     private void executeInvokeCallback(final ResponseFuture responseFuture) {
         boolean runInThisThread = false;
@@ -368,6 +369,7 @@ public abstract class NettyRemotingAbstract {
     /**
      * <p>
      * This method is periodically invoked to scan and expire deprecated request.
+     * 移除过期的请求，并执行回调
      * </p>
      */
     public void scanResponseTable() {

@@ -53,10 +53,16 @@ public abstract class ServiceThread implements Runnable {
         this.thread.start();
     }
 
+    /**
+     *
+     */
     public void shutdown() {
         this.shutdown(false);
     }
 
+    /**
+     * @param interrupt
+     */
     public void shutdown(final boolean interrupt) {
         log.info("Try to shutdown service thread:{} started:{} lastThread:{}", getServiceName(), started.get(), thread);
         if (!started.compareAndSet(true, false)) {
