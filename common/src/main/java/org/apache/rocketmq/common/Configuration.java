@@ -184,6 +184,9 @@ public class Configuration {
         this.storePath = storePath;
     }
 
+    /**
+     * @param properties
+     */
     public void update(Properties properties) {
         try {
             readWriteLock.writeLock().lockInterruptibly();
@@ -228,6 +231,9 @@ public class Configuration {
         }
     }
 
+    /**
+     * @return
+     */
     public String getAllConfigsFormatString() {
         try {
             readWriteLock.readLock().lockInterruptibly();
@@ -268,6 +274,9 @@ public class Configuration {
         return null;
     }
 
+    /**
+     * @return
+     */
     private String getAllConfigsInternal() {
         StringBuilder stringBuilder = new StringBuilder();
 

@@ -280,6 +280,10 @@ public class MixAll {
         return sb.toString();
     }
 
+    /**
+     * @param str
+     * @return
+     */
     public static Properties string2Properties(final String str) {
         Properties properties = new Properties();
         try {

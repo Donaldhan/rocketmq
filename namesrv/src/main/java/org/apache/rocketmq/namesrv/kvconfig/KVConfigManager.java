@@ -153,6 +153,11 @@ public class KVConfigManager {
         this.persist();
     }
 
+    /**
+     * 获取命名空间下的KV配置
+     * @param namespace
+     * @return
+     */
     public byte[] getKVListByNamespace(final String namespace) {
         try {
             this.lock.readLock().lockInterruptibly();

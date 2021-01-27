@@ -81,6 +81,9 @@ public class RouteInfoManager {
         this.filterServerTable = new HashMap<String, List<String>>(256);
     }
 
+    /**
+     * @return
+     */
     public byte[] getAllClusterInfo() {
         ClusterInfo clusterInfoSerializeWrapper = new ClusterInfo();
         clusterInfoSerializeWrapper.setBrokerAddrTable(this.brokerAddrTable);
@@ -88,6 +91,9 @@ public class RouteInfoManager {
         return clusterInfoSerializeWrapper.encode();
     }
 
+    /**
+     * @param topic
+     */
     public void deleteTopic(final String topic) {
         try {
             try {
@@ -101,6 +107,9 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * @return
+     */
     public byte[] getAllTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -295,6 +304,11 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     *
+     * @param brokerName
+     * @return
+     */
     public int wipeWritePermOfBrokerByLock(final String brokerName) {
         try {
             try {
@@ -310,6 +324,11 @@ public class RouteInfoManager {
         return 0;
     }
 
+    /**
+     * 擦除broker对应队列的写许可次数
+     * @param brokerName
+     * @return
+     */
     private int wipeWritePermOfBroker(final String brokerName) {
         int wipeTopicCnt = 0;
         Iterator<Entry<String, List<QueueData>>> itTopic = this.topicQueueTable.entrySet().iterator();
@@ -332,6 +351,13 @@ public class RouteInfoManager {
         return wipeTopicCnt;
     }
 
+    /**
+     * 注销broker
+     * @param clusterName
+     * @param brokerAddr
+     * @param brokerName
+     * @param brokerId
+     */
     public void unregisterBroker(
         final String clusterName,
         final String brokerAddr,
@@ -340,6 +366,7 @@ public class RouteInfoManager {
         try {
             try {
                 this.lock.writeLock().lockInterruptibly();
+                //从存活broker table 移除
                 BrokerLiveInfo brokerLiveInfo = this.brokerLiveTable.remove(brokerAddr);
                 log.info("unregisterBroker, remove from brokerLiveTable {}, {}",
                     brokerLiveInfo != null ? "OK" : "Failed",
@@ -351,6 +378,7 @@ public class RouteInfoManager {
                 boolean removeBrokerName = false;
                 BrokerData brokerData = this.brokerAddrTable.get(brokerName);
                 if (null != brokerData) {
+                    //broker地址表中移除
                     String addr = brokerData.getBrokerAddrs().remove(brokerId);
                     log.info("unregisterBroker, remove addr from brokerAddrTable {}, {}",
                         addr != null ? "OK" : "Failed",
@@ -368,6 +396,7 @@ public class RouteInfoManager {
                 }
 
                 if (removeBrokerName) {
+                    //从簇table中移除
                     Set<String> nameSet = this.clusterAddrTable.get(clusterName);
                     if (nameSet != null) {
                         boolean removed = nameSet.remove(brokerName);
@@ -382,6 +411,7 @@ public class RouteInfoManager {
                             );
                         }
                     }
+                    //移除broker对应的topic
                     this.removeTopicByBrokerName(brokerName);
                 }
             } finally {
@@ -392,6 +422,10 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * 从topic队列表中移除broker对应的队列
+     * @param brokerName
+     */
     private void removeTopicByBrokerName(final String brokerName) {
         Iterator<Entry<String, List<QueueData>>> itMap = this.topicQueueTable.entrySet().iterator();
         while (itMap.hasNext()) {
@@ -415,6 +449,11 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * 获取topic路由信息， 队列和broker的相关信息
+     * @param topic
+     * @return
+     */
     public TopicRouteData pickupTopicRouteData(final String topic) {
         TopicRouteData topicRouteData = new TopicRouteData();
         boolean foundQueueData = false;
@@ -663,6 +702,9 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * @return
+     */
     public byte[] getSystemTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -695,6 +737,10 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * @param cluster
+     * @return
+     */
     public byte[] getTopicsByCluster(String cluster) {
         TopicList topicList = new TopicList();
         try {
@@ -726,6 +772,9 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * @return
+     */
     public byte[] getUnitTopics() {
         TopicList topicList = new TopicList();
         try {
@@ -752,6 +801,9 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * @return
+     */
     public byte[] getHasUnitSubTopicList() {
         TopicList topicList = new TopicList();
         try {
@@ -778,6 +830,9 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * @return
+     */
     public byte[] getHasUnitSubUnUnitTopicList() {
         TopicList topicList = new TopicList();
         try {

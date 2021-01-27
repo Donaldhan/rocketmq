@@ -18,8 +18,14 @@ package org.apache.rocketmq.common.sysflag;
 
 public class TopicSysFlag {
 
+    /**
+     *
+     */
     private final static int FLAG_UNIT = 0x1 << 0;
 
+    /**
+     *
+     */
     private final static int FLAG_UNIT_SUB = 0x1 << 1;
 
     public static int buildSysFlag(final boolean unit, final boolean hasUnitSub) {
