@@ -48,6 +48,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_ENABLE;
 
+/**
+ * broker start
+ */
 public class BrokerStartup {
     public static Properties properties = null;
     public static CommandLine commandLine = null;
@@ -55,9 +58,14 @@ public class BrokerStartup {
     public static InternalLogger log;
 
     public static void main(String[] args) {
+        //TODO
         start(createBrokerController(args));
     }
 
+    /**
+     * @param controller
+     * @return
+     */
     public static BrokerController start(BrokerController controller) {
         try {
 
@@ -81,12 +89,35 @@ public class BrokerStartup {
         return null;
     }
 
+    /**
+     * @param controller
+     */
     public static void shutdown(final BrokerController controller) {
         if (null != controller) {
             controller.shutdown();
         }
     }
 
+    /**
+     * broker-n0.conf
+     * ```conf
+     * brokerClusterName = RaftCluster
+     * brokerName=RaftNode00
+     * listenPort=30911
+     * namesrvAddr=192.168.5.135:9876;192.168.5.136:9876;192.168.5.137:9876;
+     * storePathRootDir=/rocketmq/data/rmqstore/node00
+     * storePathCommitLog=/rocketmq/data/rmqstore/node00/commitlog
+     * enableDLegerCommitLog=true
+     * dLegerGroup=RaftNode00
+     * dLegerPeers=n0-192.168.5.135:40911;n1-192.168.5.136:40912;n2-192.168.5.137:40913
+     * ## must be unique
+     * dLegerSelfId=n0
+     * sendMessageThreadPoolNums=2
+     * ```
+     * nohup sh bin/mqbroker   -c conf/dledger/broker-n0.conf  > broker.log &
+     * @param args
+     * @return
+     */
     public static BrokerController createBrokerController(String[] args) {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
 
@@ -114,6 +145,7 @@ public class BrokerStartup {
             nettyClientConfig.setUseTLS(Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
                 String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING))));
             nettyServerConfig.setListenPort(10911);
+
             final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
 
             if (BrokerRole.SLAVE == messageStoreConfig.getBrokerRole()) {
@@ -122,6 +154,7 @@ public class BrokerStartup {
             }
 
             if (commandLine.hasOption('c')) {
+                //加载配置文件
                 String file = commandLine.getOptionValue('c');
                 if (file != null) {
                     configFile = file;
@@ -130,6 +163,7 @@ public class BrokerStartup {
                     properties.load(in);
 
                     properties2SystemEnv(properties);
+                    //解析broker，netty 服务端，客户端配置及消息存储的配置
                     MixAll.properties2Object(properties, brokerConfig);
                     MixAll.properties2Object(properties, nettyServerConfig);
                     MixAll.properties2Object(properties, nettyClientConfig);
@@ -139,7 +173,7 @@ public class BrokerStartup {
                     in.close();
                 }
             }
-
+            //从命令行解析broker的配置
             MixAll.properties2Object(ServerUtil.commandLine2Properties(commandLine), brokerConfig);
 
             if (null == brokerConfig.getRocketmqHome()) {
@@ -152,6 +186,7 @@ public class BrokerStartup {
                 try {
                     String[] addrArray = namesrvAddr.split(";");
                     for (String addr : addrArray) {
+                        //转换为socket地址
                         RemotingUtil.string2SocketAddress(addr);
                     }
                 } catch (Exception e) {
@@ -161,10 +196,11 @@ public class BrokerStartup {
                     System.exit(-3);
                 }
             }
-
+            //根据broker角色，检查brokerId
             switch (messageStoreConfig.getBrokerRole()) {
                 case ASYNC_MASTER:
                 case SYNC_MASTER:
+                    //master
                     brokerConfig.setBrokerId(MixAll.MASTER_ID);
                     break;
                 case SLAVE:
@@ -177,8 +213,9 @@ public class BrokerStartup {
                 default:
                     break;
             }
-
+            //高可用监听端口
             messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
+            //TODO
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);
@@ -249,6 +286,9 @@ public class BrokerStartup {
         return null;
     }
 
+    /**
+     * @param properties
+     */
     private static void properties2SystemEnv(Properties properties) {
         if (properties == null) {
             return;

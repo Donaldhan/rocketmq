@@ -58,12 +58,21 @@ public class ServerUtil {
         return commandLine;
     }
 
+    /**
+     * @param appName
+     * @param options
+     */
     public static void printCommandLineHelp(final String appName, final Options options) {
         HelpFormatter hf = new HelpFormatter();
         hf.setWidth(110);
         hf.printHelp(appName, options, true);
     }
 
+    /**
+     * 从命令行解析配置属性
+     * @param commandLine
+     * @return
+     */
     public static Properties commandLine2Properties(final CommandLine commandLine) {
         Properties properties = new Properties();
         Option[] opts = commandLine.getOptions();

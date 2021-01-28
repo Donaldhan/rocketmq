@@ -25,6 +25,9 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+/**
+ * Broker 配置
+ */
 public class BrokerConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
@@ -41,7 +44,13 @@ public class BrokerConfig {
     @ImportantField
     private long brokerId = MixAll.MASTER_ID;
     private int brokerPermission = PermName.PERM_READ | PermName.PERM_WRITE;
+    /**
+     * 默认topic队列数
+     */
     private int defaultTopicQueueNums = 8;
+    /**
+     *
+     */
     @ImportantField
     private boolean autoCreateTopicEnable = true;
 
@@ -56,10 +65,14 @@ public class BrokerConfig {
     @ImportantField
     private boolean traceTopicEnable = false;
     /**
-     * thread numbers for send message thread pool, since spin lock will be used by default since 4.0.x, the default
-     * value is 1.
+     * thread numbers for send message thread pool,
+     * since spin lock will be used by default since 4.0.x, the default value is 1.
+     * 发送消息的线程池
      */
-    private int sendMessageThreadPoolNums = 1; //16 + Runtime.getRuntime().availableProcessors() * 4;
+    private int sendMessageThreadPoolNums = 1;
+    /**
+     * 16 + Runtime.getRuntime().availableProcessors() * 4;
+     */
     private int pullMessageThreadPoolNums = 16 + Runtime.getRuntime().availableProcessors() * 2;
     private int queryMessageThreadPoolNums = 8 + Runtime.getRuntime().availableProcessors();
 
@@ -126,22 +139,30 @@ public class BrokerConfig {
 
     private boolean traceOn = true;
 
-    // Switch of filter bit map calculation.
-    // If switch on:
-    // 1. Calculate filter bit map when construct queue.
-    // 2. Filter bit map will be saved to consume queue extend file if allowed.
+    /**
+     * Switch of filter bit map calculation.
+     * If switch on:
+     * 1. Calculate filter bit map when construct queue.
+     * 2. Filter bit map will be saved to consume queue extend file if allowed.
+     */
     private boolean enableCalcFilterBitMap = false;
 
-    // Expect num of consumers will use filter.
+    /**
+     * Expect num of consumers will use filter.
+     */
     private int expectConsumerNumUseFilter = 32;
-
-    // Error rate of bloom filter, 1~100.
+    /**
+     *  Error rate of bloom filter, 1~100.
+     */
     private int maxErrorRateOfBloomFilter = 20;
-
-    //how long to clean filter data after dead.Default: 24h
+    /**
+     * how long to clean filter data after dead.Default: 24h
+     */
     private long filterDataCleanTimeSpan = 24 * 3600 * 1000;
 
-    // whether do filter when retry.
+    /**
+     * whether do filter when retry.
+     */
     private boolean filterSupportRetry = false;
     private boolean enablePropertyFilter = false;
 
@@ -158,18 +179,21 @@ public class BrokerConfig {
     /**
      * The minimum time of the transactional message  to be checked firstly, one message only exceed this time interval
      * that can be checked.
+     * 事务消息超时时间
      */
     @ImportantField
     private long transactionTimeOut = 6 * 1000;
 
     /**
      * The maximum number of times the message was checked, if exceed this value, this message will be discarded.
+     * 事务消息检查的最大次数，超时将会被丢弃
      */
     @ImportantField
     private int transactionCheckMax = 15;
 
     /**
      * Transaction message check interval.
+     * 事务消息检查间隔
      */
     @ImportantField
     private long transactionCheckInterval = 60 * 1000;

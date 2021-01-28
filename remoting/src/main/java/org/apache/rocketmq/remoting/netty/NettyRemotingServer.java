@@ -353,6 +353,9 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         return this.publicExecutor;
     }
 
+    /**
+     *
+     */
     class HandshakeHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         private final TlsMode tlsMode;
@@ -380,6 +383,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                         break;
                     case PERMISSIVE:
                     case ENFORCING:
+                        //TSL 增强
                         if (null != sslContext) {
                             ctx.pipeline()
                                 .addAfter(defaultEventExecutorGroup, HANDSHAKE_HANDLER_NAME, TLS_HANDLER_NAME, sslContext.newHandler(ctx.channel().alloc()))
@@ -415,14 +419,25 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    /**
+     * 服务处理器
+     */
     class NettyServerHandler extends SimpleChannelInboundHandler<RemotingCommand> {
 
+        /**
+         * @param ctx
+         * @param msg
+         * @throws Exception
+         */
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand msg) throws Exception {
             processMessageReceived(ctx, msg);
         }
     }
 
+    /**
+     * 连接处理器
+     */
     class NettyConnectManageHandler extends ChannelDuplexHandler {
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {

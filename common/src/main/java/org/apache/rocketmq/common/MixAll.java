@@ -327,6 +327,10 @@ public class MixAll {
         return properties;
     }
 
+    /**
+     * @param p
+     * @param object
+     */
     public static void properties2Object(final Properties p, final Object object) {
         Method[] methods = object.getClass().getMethods();
         for (Method method : methods) {
