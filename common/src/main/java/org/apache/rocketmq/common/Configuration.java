@@ -103,7 +103,7 @@ public class Configuration {
 
     /**
      * register config properties
-     *
+     * 注册配置属性
      * @return the current Configuration object
      */
     public Configuration registerConfig(Properties extProperties) {

@@ -18,40 +18,86 @@ package org.apache.rocketmq.store.config;
 
 import java.io.File;
 
+/**
+ *
+ */
 public class StorePathConfigHelper {
 
+    /**
+     * 消费队列的存储路径
+     * @param rootDir
+     * @return
+     */
     public static String getStorePathConsumeQueue(final String rootDir) {
         return rootDir + File.separator + "consumequeue";
     }
 
+    /**
+     * @param rootDir
+     * @return
+     */
     public static String getStorePathConsumeQueueExt(final String rootDir) {
         return rootDir + File.separator + "consumequeue_ext";
     }
 
+    /**
+     * 索引存储路径
+     * @param rootDir
+     * @return
+     */
     public static String getStorePathIndex(final String rootDir) {
         return rootDir + File.separator + "index";
     }
 
+    /**
+     * 检查点存储路径
+     * @param rootDir
+     * @return
+     */
     public static String getStoreCheckpoint(final String rootDir) {
         return rootDir + File.separator + "checkpoint";
     }
 
+    /**
+     * @param rootDir
+     * @return
+     */
     public static String getAbortFile(final String rootDir) {
         return rootDir + File.separator + "abort";
     }
 
+    /**
+     * 锁文件
+     * @param rootDir
+     * @return
+     */
     public static String getLockFile(final String rootDir) {
         return rootDir + File.separator + "lock";
     }
 
+    /**
+     * 延迟offset 存储路径
+     * @param rootDir
+     * @return
+     */
     public static String getDelayOffsetStorePath(final String rootDir) {
         return rootDir + File.separator + "config" + File.separator + "delayOffset.json";
     }
 
+    /**
+     * 状态table
+     * @param rootDir
+     * @return
+     */
     public static String getTranStateTableStorePath(final String rootDir) {
         return rootDir + File.separator + "transaction" + File.separator + "statetable";
     }
 
+    /**
+     * 事务redo存储路径
+     * @param rootDir
+     * @return
+     */
     public static String getTranRedoLogStorePath(final String rootDir) {
         return rootDir + File.separator + "transaction" + File.separator + "redolog";
     }

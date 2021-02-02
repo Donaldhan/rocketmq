@@ -181,11 +181,21 @@ public class MixAll {
         }
     }
 
+    /**
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
     public static String file2String(final String fileName) throws IOException {
         File file = new File(fileName);
         return file2String(file);
     }
 
+    /**
+     * @param file
+     * @return
+     * @throws IOException
+     */
     public static String file2String(final File file) throws IOException {
         if (file.exists()) {
             byte[] data = new byte[(int) file.length()];

@@ -32,9 +32,15 @@ import org.apache.rocketmq.common.protocol.heartbeat.ConsumeType;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.common.protocol.heartbeat.SubscriptionData;
 
+/**
+ * 消费者分组信息
+ */
 public class ConsumerGroupInfo {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final String groupName;
+    /**
+     * 订阅信息表
+     */
     private final ConcurrentMap<String/* Topic */, SubscriptionData> subscriptionTable =
         new ConcurrentHashMap<String, SubscriptionData>();
     private final ConcurrentMap<Channel, ClientChannelInfo> channelInfoTable =
@@ -206,6 +212,10 @@ public class ConsumerGroupInfo {
         return subscriptionTable.keySet();
     }
 
+    /**
+     * @param topic
+     * @return
+     */
     public SubscriptionData findSubscriptionData(final String topic) {
         return this.subscriptionTable.get(topic);
     }

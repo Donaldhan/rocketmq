@@ -215,7 +215,6 @@ public class BrokerStartup {
             }
             //高可用监听端口
             messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
-            //TODO
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);
@@ -243,7 +242,7 @@ public class BrokerStartup {
             MixAll.printObjectProperties(log, nettyServerConfig);
             MixAll.printObjectProperties(log, nettyClientConfig);
             MixAll.printObjectProperties(log, messageStoreConfig);
-
+            //TODO
             final BrokerController controller = new BrokerController(
                 brokerConfig,
                 nettyServerConfig,

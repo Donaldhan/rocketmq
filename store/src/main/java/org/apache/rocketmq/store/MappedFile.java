@@ -41,6 +41,9 @@ import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
+/**
+ *
+ */
 public class MappedFile extends ReferenceResource {
     public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -78,6 +81,9 @@ public class MappedFile extends ReferenceResource {
         init(fileName, fileSize, transientStorePool);
     }
 
+    /**
+     * @param dirName
+     */
     public static void ensureDirOK(final String dirName) {
         if (dirName != null) {
             File f = new File(dirName);
@@ -88,12 +94,21 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    /**
+     * @param buffer
+     */
     public static void clean(final ByteBuffer buffer) {
         if (buffer == null || !buffer.isDirect() || buffer.capacity() == 0)
             return;
         invoke(invoke(viewed(buffer), "cleaner"), "clean");
     }
 
+    /**
+     * @param target
+     * @param methodName
+     * @param args
+     * @return
+     */
     private static Object invoke(final Object target, final String methodName, final Class<?>... args) {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
@@ -117,6 +132,10 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    /**
+     * @param buffer
+     * @return
+     */
     private static ByteBuffer viewed(ByteBuffer buffer) {
         String methodName = "viewedBuffer";
 
@@ -150,6 +169,11 @@ public class MappedFile extends ReferenceResource {
         this.transientStorePool = transientStorePool;
     }
 
+    /**
+     * @param fileName
+     * @param fileSize
+     * @throws IOException
+     */
     private void init(final String fileName, final int fileSize) throws IOException {
         this.fileName = fileName;
         this.fileSize = fileSize;

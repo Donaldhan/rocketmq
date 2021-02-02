@@ -105,6 +105,9 @@ import org.apache.rocketmq.store.dledger.DLedgerCommitLog;
 import org.apache.rocketmq.store.stats.BrokerStats;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
+/**
+ * broker 控制器
+ */
 public class BrokerController {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final InternalLogger LOG_PROTECTION = InternalLoggerFactory.getLogger(LoggerName.PROTECTION_LOGGER_NAME);
@@ -164,6 +167,12 @@ public class BrokerController {
     private Future<?> slaveSyncFuture;
 
 
+    /**
+     * @param brokerConfig
+     * @param nettyServerConfig
+     * @param nettyClientConfig
+     * @param messageStoreConfig
+     */
     public BrokerController(
         final BrokerConfig brokerConfig,
         final NettyServerConfig nettyServerConfig,
@@ -175,6 +184,7 @@ public class BrokerController {
         this.nettyClientConfig = nettyClientConfig;
         this.messageStoreConfig = messageStoreConfig;
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
+        //TODO READ
         this.topicConfigManager = new TopicConfigManager(this);
         this.pullMessageProcessor = new PullMessageProcessor(this);
         this.pullRequestHoldService = new PullRequestHoldService(this);
@@ -226,6 +236,10 @@ public class BrokerController {
         return queryThreadPoolQueue;
     }
 
+    /**
+     * @return
+     * @throws CloneNotSupportedException
+     */
     public boolean initialize() throws CloneNotSupportedException {
         boolean result = this.topicConfigManager.load();
 

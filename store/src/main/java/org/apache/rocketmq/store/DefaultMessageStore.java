@@ -66,6 +66,9 @@ public class DefaultMessageStore implements MessageStore {
     // CommitLog
     private final CommitLog commitLog;
 
+    /**
+     * 消费队列表
+     */
     private final ConcurrentMap<String/* topic */, ConcurrentMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
 
     private final FlushConsumeQueueService flushConsumeQueueService;
@@ -662,6 +665,12 @@ public class DefaultMessageStore implements MessageStore {
         return 0;
     }
 
+    /**
+     * @param topic   Topic name.
+     * @param queueId Queue ID.
+     * @return
+     */
+    @Override
     public long getMinOffsetInQueue(String topic, int queueId) {
         ConsumeQueue logic = this.findConsumeQueue(topic, queueId);
         if (logic != null) {
@@ -1126,12 +1135,18 @@ public class DefaultMessageStore implements MessageStore {
         return null;
     }
 
+    /**
+     * @param topic
+     * @param queueId
+     * @return
+     */
     public ConsumeQueue findConsumeQueue(String topic, int queueId) {
         ConcurrentMap<Integer, ConsumeQueue> map = consumeQueueTable.get(topic);
         if (null == map) {
             ConcurrentMap<Integer, ConsumeQueue> newMap = new ConcurrentHashMap<Integer, ConsumeQueue>(128);
             ConcurrentMap<Integer, ConsumeQueue> oldMap = consumeQueueTable.putIfAbsent(topic, newMap);
             if (oldMap != null) {
+                //存在并发操作？
                 map = oldMap;
             } else {
                 map = newMap;
