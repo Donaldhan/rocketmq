@@ -112,11 +112,29 @@ public class BrokerController {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final InternalLogger LOG_PROTECTION = InternalLoggerFactory.getLogger(LoggerName.PROTECTION_LOGGER_NAME);
     private static final InternalLogger LOG_WATER_MARK = InternalLoggerFactory.getLogger(LoggerName.WATER_MARK_LOGGER_NAME);
+    /**
+     *
+     */
     private final BrokerConfig brokerConfig;
+    /**
+     *
+     */
     private final NettyServerConfig nettyServerConfig;
+    /**
+     *
+     */
     private final NettyClientConfig nettyClientConfig;
+    /**
+     * 消息存储
+     */
     private final MessageStoreConfig messageStoreConfig;
+    /**
+     * 消费者offset管理器
+     */
     private final ConsumerOffsetManager consumerOffsetManager;
+    /**
+     * 消费者管理器
+     */
     private final ConsumerManager consumerManager;
     private final ConsumerFilterManager consumerFilterManager;
     private final ProducerManager producerManager;
@@ -183,6 +201,7 @@ public class BrokerController {
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
         this.messageStoreConfig = messageStoreConfig;
+        //消费者offset管理器
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
         //TODO READ
         this.topicConfigManager = new TopicConfigManager(this);
