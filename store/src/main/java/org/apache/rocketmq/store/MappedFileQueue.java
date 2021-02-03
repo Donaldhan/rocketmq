@@ -48,6 +48,9 @@ public class MappedFileQueue {
      */
     private final int mappedFileSize;
 
+    /**
+     * 映射文件
+     */
     private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
     private final AllocateMappedFileService allocateMappedFileService;
@@ -246,6 +249,10 @@ public class MappedFileQueue {
         return getLastMappedFile(startOffset, true);
     }
 
+    /**
+     * 获取最后一个映射文件
+     * @return
+     */
     public MappedFile getLastMappedFile() {
         MappedFile mappedFileLast = null;
 
@@ -463,7 +470,7 @@ public class MappedFileQueue {
 
     /**
      * Finds a mapped file by offset.
-     *
+     * 根据offset查找mapped文件
      * @param offset Offset.
      * @param returnFirstOnNotFound If the mapped file is not found, then return the first one.
      * @return Mapped file or null (when not found and returnFirstOnNotFound is <code>false</code>).
@@ -481,18 +488,19 @@ public class MappedFileQueue {
                         this.mappedFileSize,
                         this.mappedFiles.size());
                 } else {
+                    //获取MapedFile实际索引
                     int index = (int) ((offset / this.mappedFileSize) - (firstMappedFile.getFileFromOffset() / this.mappedFileSize));
                     MappedFile targetFile = null;
                     try {
                         targetFile = this.mappedFiles.get(index);
                     } catch (Exception ignored) {
                     }
-
+                    //对应索引文件存在
                     if (targetFile != null && offset >= targetFile.getFileFromOffset()
                         && offset < targetFile.getFileFromOffset() + this.mappedFileSize) {
                         return targetFile;
                     }
-
+                    //否则索引，查找对应文件
                     for (MappedFile tmpMappedFile : this.mappedFiles) {
                         if (offset >= tmpMappedFile.getFileFromOffset()
                             && offset < tmpMappedFile.getFileFromOffset() + this.mappedFileSize) {
@@ -502,6 +510,7 @@ public class MappedFileQueue {
                 }
 
                 if (returnFirstOnNotFound) {
+                    //没有发现返回第一个
                     return firstMappedFile;
                 }
             }
@@ -512,6 +521,10 @@ public class MappedFileQueue {
         return null;
     }
 
+    /**
+     * 获取第一个映射文件
+     * @return
+     */
     public MappedFile getFirstMappedFile() {
         MappedFile mappedFileFirst = null;
 
@@ -528,6 +541,10 @@ public class MappedFileQueue {
         return mappedFileFirst;
     }
 
+    /**
+     * @param offset
+     * @return
+     */
     public MappedFile findMappedFileByOffset(final long offset) {
         return findMappedFileByOffset(offset, false);
     }

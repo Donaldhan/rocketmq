@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Consumer filter data manager.Just manage the consumers use expression filter.
+ * 消费者过滤数据管理器
  */
 public class ConsumerFilterManager extends ConfigManager {
 
@@ -46,6 +47,9 @@ public class ConsumerFilterManager extends ConfigManager {
 
     private static final long MS_24_HOUR = 24 * 3600 * 1000;
 
+    /**
+     * topic 过滤器
+     */
     private ConcurrentMap<String/*Topic*/, FilterDataMapByTopic>
         filterDataByTopic = new ConcurrentHashMap<String/*consumer group*/, FilterDataMapByTopic>(256);
 
@@ -72,6 +76,11 @@ public class ConsumerFilterManager extends ConfigManager {
     /**
      * Build consumer filter data.Be care, bloom filter data is not included.
      *
+     * @param topic
+     * @param consumerGroup
+     * @param expression tag， 订阅消息的tag过滤器
+     * @param type
+     * @param clientVersion
      * @return maybe null
      */
     public static ConsumerFilterData build(final String topic, final String consumerGroup,

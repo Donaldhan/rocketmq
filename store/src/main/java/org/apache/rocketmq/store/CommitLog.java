@@ -41,12 +41,17 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 
 /**
  * Store all metadata downtime for recovery, data protection reliability
+ * 存储所有元数据，可以在宕机的时候恢复，包括数据的可靠性
  */
 public class CommitLog {
-    // Message's MAGIC CODE daa320a7
+    /**
+     * Message's MAGIC CODE daa320a7
+     */
     public final static int MESSAGE_MAGIC_CODE = -626843481;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-    // End of file empty MAGIC CODE cbd43194
+    /**
+     * End of file empty MAGIC CODE cbd43194
+     */
     protected final static int BLANK_MAGIC_CODE = -875286124;
     protected final MappedFileQueue mappedFileQueue;
     protected final DefaultMessageStore defaultMessageStore;
@@ -827,7 +832,13 @@ public class CommitLog {
         return -1;
     }
 
+    /**
+     * @param offset
+     * @param size
+     * @return
+     */
     public SelectMappedBufferResult getMessage(final long offset, final int size) {
+        //映射文件大小
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
         if (mappedFile != null) {

@@ -207,6 +207,10 @@ public class DLedgerCommitLog extends CommitLog {
     }
 
 
+    /**
+     * @param sbr
+     * @return
+     */
     public SelectMappedBufferResult convertSbr(SelectMmapBufferResult sbr) {
         if (sbr == null) {
             return null;
@@ -716,6 +720,9 @@ public class DLedgerCommitLog extends CommitLog {
 
     }
 
+    /**
+     *
+     */
     public static class DLedgerSelectMappedBufferResult extends SelectMappedBufferResult {
 
         private SelectMmapBufferResult sbr;

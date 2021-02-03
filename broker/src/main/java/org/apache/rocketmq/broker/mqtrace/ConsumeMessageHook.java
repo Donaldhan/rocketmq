@@ -16,10 +16,22 @@
  */
 package org.apache.rocketmq.broker.mqtrace;
 
+/**
+ *
+ */
 public interface ConsumeMessageHook {
+    /**
+     * @return
+     */
     String hookName();
 
+    /**
+     * @param context
+     */
     void consumeMessageBefore(final ConsumeMessageContext context);
 
+    /**
+     * @param context
+     */
     void consumeMessageAfter(final ConsumeMessageContext context);
 }

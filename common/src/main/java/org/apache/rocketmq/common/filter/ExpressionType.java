@@ -17,6 +17,9 @@
 
 package org.apache.rocketmq.common.filter;
 
+/**
+ *
+ */
 public class ExpressionType {
 
     /**
@@ -58,6 +61,10 @@ public class ExpressionType {
      */
     public static final String TAG = "TAG";
 
+    /**
+     * @param type
+     * @return
+     */
     public static boolean isTagType(String type) {
         if (type == null || "".equals(type) || TAG.equals(type)) {
             return true;

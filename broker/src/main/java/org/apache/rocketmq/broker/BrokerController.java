@@ -203,9 +203,11 @@ public class BrokerController {
         this.messageStoreConfig = messageStoreConfig;
         //消费者offset管理器
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
-        //TODO READ
+        // topic 配置管理器
         this.topicConfigManager = new TopicConfigManager(this);
+        // 拉取消息处理器
         this.pullMessageProcessor = new PullMessageProcessor(this);
+        //TODO
         this.pullRequestHoldService = new PullRequestHoldService(this);
         this.messageArrivingListener = new NotifyMessageArrivingListener(this.pullRequestHoldService);
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
@@ -256,6 +258,7 @@ public class BrokerController {
     }
 
     /**
+     * 初始化控制器
      * @return
      * @throws CloneNotSupportedException
      */

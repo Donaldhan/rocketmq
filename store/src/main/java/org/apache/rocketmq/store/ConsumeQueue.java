@@ -35,6 +35,9 @@ public class ConsumeQueue {
 
     private final DefaultMessageStore defaultMessageStore;
 
+    /**
+     * 队列映射文件
+     */
     private final MappedFileQueue mappedFileQueue;
     private final String topic;
     private final int queueId;
@@ -486,6 +489,10 @@ public class ConsumeQueue {
         }
     }
 
+    /**
+     * @param startIndex
+     * @return
+     */
     public SelectMappedBufferResult getIndexBuffer(final long startIndex) {
         int mappedFileSize = this.mappedFileSize;
         long offset = startIndex * CQ_STORE_UNIT_SIZE;

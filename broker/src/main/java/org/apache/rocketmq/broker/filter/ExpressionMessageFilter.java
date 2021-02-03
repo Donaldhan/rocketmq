@@ -31,11 +31,20 @@ import org.apache.rocketmq.store.MessageFilter;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+/**
+ *
+ */
 public class ExpressionMessageFilter implements MessageFilter {
 
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.FILTER_LOGGER_NAME);
 
+    /**
+     *
+     */
     protected final SubscriptionData subscriptionData;
+    /**
+     *
+     */
     protected final ConsumerFilterData consumerFilterData;
     protected final ConsumerFilterManager consumerFilterManager;
     protected final boolean bloomDataValid;
@@ -77,7 +86,7 @@ public class ExpressionMessageFilter implements MessageFilter {
             if (subscriptionData.getSubString().equals(SubscriptionData.SUB_ALL)) {
                 return true;
             }
-
+            //订阅数据tag code集包含对应的tagsCode
             return subscriptionData.getCodeSet().contains(tagsCode.intValue());
         } else {
             // no expression or no bloom
