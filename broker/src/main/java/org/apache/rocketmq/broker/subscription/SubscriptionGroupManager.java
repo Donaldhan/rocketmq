@@ -31,9 +31,15 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.common.subscription.SubscriptionGroupConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+/**
+ *
+ */
 public class SubscriptionGroupManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
 
+    /**
+     * 分组订阅配置
+     */
     private final ConcurrentMap<String, SubscriptionGroupConfig> subscriptionGroupTable =
         new ConcurrentHashMap<String, SubscriptionGroupConfig>(1024);
     private final DataVersion dataVersion = new DataVersion();
@@ -48,6 +54,9 @@ public class SubscriptionGroupManager extends ConfigManager {
         this.init();
     }
 
+    /**
+     *
+     */
     private void init() {
         {
             SubscriptionGroupConfig subscriptionGroupConfig = new SubscriptionGroupConfig();
@@ -96,6 +105,10 @@ public class SubscriptionGroupManager extends ConfigManager {
         }
     }
 
+    /**
+     * 更新订阅分组配置
+     * @param config
+     */
     public void updateSubscriptionGroupConfig(final SubscriptionGroupConfig config) {
         SubscriptionGroupConfig old = this.subscriptionGroupTable.put(config.getGroupName(), config);
         if (old != null) {
@@ -109,6 +122,10 @@ public class SubscriptionGroupManager extends ConfigManager {
         this.persist();
     }
 
+    /**
+     * disable 消费分组
+     * @param groupName
+     */
     public void disableConsume(final String groupName) {
         SubscriptionGroupConfig old = this.subscriptionGroupTable.get(groupName);
         if (old != null) {
@@ -117,6 +134,11 @@ public class SubscriptionGroupManager extends ConfigManager {
         }
     }
 
+    /**
+     * 获取分组信息， 不存在的情况下如果为自动创建订阅分组或者为系统消费分组，则创建订阅分组配置
+     * @param group
+     * @return
+     */
     public SubscriptionGroupConfig findSubscriptionGroupConfig(final String group) {
         SubscriptionGroupConfig subscriptionGroupConfig = this.subscriptionGroupTable.get(group);
         if (null == subscriptionGroupConfig) {

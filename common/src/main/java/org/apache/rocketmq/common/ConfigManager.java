@@ -26,6 +26,9 @@ public abstract class ConfigManager {
 
     public abstract String encode();
 
+    /**
+     * @return
+     */
     public boolean load() {
         String fileName = null;
         try {
@@ -70,6 +73,9 @@ public abstract class ConfigManager {
 
     public abstract void decode(final String jsonString);
 
+    /**
+     * 持久化配置
+     */
     public synchronized void persist() {
         String jsonString = this.encode(true);
         if (jsonString != null) {

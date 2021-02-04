@@ -205,23 +205,25 @@ public class BrokerController {
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
         // topic 配置管理器
         this.topicConfigManager = new TopicConfigManager(this);
+        //消费者过滤器管理器
+        this.consumerFilterManager = new ConsumerFilterManager(this);
+        //订阅分组管理器
+        this.subscriptionGroupManager = new SubscriptionGroupManager(this);
         // 拉取消息处理器
         this.pullMessageProcessor = new PullMessageProcessor(this);
-        //TODO
+        //拉取请求处理服务
         this.pullRequestHoldService = new PullRequestHoldService(this);
+        // 消息达到监听器
         this.messageArrivingListener = new NotifyMessageArrivingListener(this.pullRequestHoldService);
+        //TODO
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
+        this.broker2Client = new Broker2Client(this);
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
-        this.consumerFilterManager = new ConsumerFilterManager(this);
         this.producerManager = new ProducerManager();
         this.clientHousekeepingService = new ClientHousekeepingService(this);
-        this.broker2Client = new Broker2Client(this);
-        this.subscriptionGroupManager = new SubscriptionGroupManager(this);
         this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
         this.filterServerManager = new FilterServerManager(this);
-
         this.slaveSynchronize = new SlaveSynchronize(this);
-
         this.sendThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getSendThreadPoolQueueCapacity());
         this.pullThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getPullThreadPoolQueueCapacity());
         this.queryThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getQueryThreadPoolQueueCapacity());
@@ -263,18 +265,22 @@ public class BrokerController {
      * @throws CloneNotSupportedException
      */
     public boolean initialize() throws CloneNotSupportedException {
+        //加载topic配置
         boolean result = this.topicConfigManager.load();
-
+        //加载消费者offset信息
         result = result && this.consumerOffsetManager.load();
+        //加载订阅分组配置
         result = result && this.subscriptionGroupManager.load();
+        //加载消费者过滤器
         result = result && this.consumerFilterManager.load();
-
         if (result) {
             try {
+                //消息存储 TODO
                 this.messageStore =
                     new DefaultMessageStore(this.messageStoreConfig, this.brokerStatsManager, this.messageArrivingListener,
                         this.brokerConfig);
                 if (messageStoreConfig.isEnableDLegerCommitLog()) {
+                    //开启DLeger 提交日志
                     DLedgerRoleChangeHandler roleChangeHandler = new DLedgerRoleChangeHandler(this, (DefaultMessageStore) messageStore);
                     ((DLedgerCommitLog)((DefaultMessageStore) messageStore).getCommitLog()).getdLedgerServer().getdLedgerLeaderElector().addRoleChangeHandler(roleChangeHandler);
                 }
@@ -351,7 +357,7 @@ public class BrokerController {
             this.consumerManageExecutor =
                 Executors.newFixedThreadPool(this.brokerConfig.getConsumerManageThreadPoolNums(), new ThreadFactoryImpl(
                     "ConsumerManageThread_"));
-
+            //注册消息处理器
             this.registerProcessor();
 
             final long initialDelay = UtilAll.computNextMorningTimeMillis() - System.currentTimeMillis();
@@ -752,6 +758,9 @@ public class BrokerController {
         return subscriptionGroupManager;
     }
 
+    /**
+     *
+     */
     public void shutdown() {
         if (this.brokerStatsManager != null) {
             this.brokerStatsManager.shutdown();
@@ -855,6 +864,9 @@ public class BrokerController {
         return this.brokerConfig.getBrokerIP1() + ":" + this.nettyServerConfig.getListenPort();
     }
 
+    /**
+     * @throws Exception
+     */
     public void start() throws Exception {
         if (this.messageStore != null) {
             this.messageStore.start();

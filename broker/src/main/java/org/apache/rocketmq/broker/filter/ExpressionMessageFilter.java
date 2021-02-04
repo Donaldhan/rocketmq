@@ -66,6 +66,12 @@ public class ExpressionMessageFilter implements MessageFilter {
         }
     }
 
+    /**
+     * 消息队列是否匹配tab表达式
+     * @param tagsCode  tagsCode
+     * @param cqExtUnit extend unit of consume queue
+     * @return
+     */
     @Override
     public boolean isMatchedByConsumeQueue(Long tagsCode, ConsumeQueueExt.CqExtUnit cqExtUnit) {
         if (null == subscriptionData) {
@@ -123,6 +129,12 @@ public class ExpressionMessageFilter implements MessageFilter {
         return true;
     }
 
+    /**
+     *
+     * @param msgBuffer  message buffer in commit log, may be null if not invoked in store.
+     * @param properties message properties, should decode from buffer if null by yourself.
+     * @return
+     */
     @Override
     public boolean isMatchedByCommitLog(ByteBuffer msgBuffer, Map<String, String> properties) {
         if (subscriptionData == null) {
@@ -153,7 +165,7 @@ public class ExpressionMessageFilter implements MessageFilter {
         Object ret = null;
         try {
             MessageEvaluationContext context = new MessageEvaluationContext(tempProperties);
-
+            //评估上下文
             ret = realFilterData.getCompiledExpression().evaluate(context);
         } catch (Throwable e) {
             log.error("Message Filter error, " + realFilterData + ", " + tempProperties, e);

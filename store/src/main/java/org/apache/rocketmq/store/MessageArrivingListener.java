@@ -20,6 +20,16 @@ package org.apache.rocketmq.store;
 import java.util.Map;
 
 public interface MessageArrivingListener {
+    /**
+     * 通知有消息达到
+     * @param topic
+     * @param queueId
+     * @param logicOffset
+     * @param tagsCode
+     * @param msgStoreTime
+     * @param filterBitMap
+     * @param properties
+     */
     void arriving(String topic, int queueId, long logicOffset, long tagsCode,
         long msgStoreTime, byte[] filterBitMap, Map<String, String> properties);
 }

@@ -28,6 +28,7 @@ import java.util.Collections;
 
 /**
  * Filter data of consumer.
+ * 消费者过滤器数据
  */
 public class ConsumerFilterData {
 

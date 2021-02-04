@@ -21,6 +21,9 @@ import org.apache.rocketmq.store.MessageArrivingListener;
 
 import java.util.Map;
 
+/**
+ * 消息达到监听器
+ */
 public class NotifyMessageArrivingListener implements MessageArrivingListener {
     private final PullRequestHoldService pullRequestHoldService;
 
@@ -28,6 +31,16 @@ public class NotifyMessageArrivingListener implements MessageArrivingListener {
         this.pullRequestHoldService = pullRequestHoldService;
     }
 
+    /**
+     * 通知有消息达到
+     * @param topic
+     * @param queueId
+     * @param logicOffset
+     * @param tagsCode
+     * @param msgStoreTime
+     * @param filterBitMap
+     * @param properties
+     */
     @Override
     public void arriving(String topic, int queueId, long logicOffset, long tagsCode,
         long msgStoreTime, byte[] filterBitMap, Map<String, String> properties) {

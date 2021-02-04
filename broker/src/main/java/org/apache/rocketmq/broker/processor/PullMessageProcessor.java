@@ -90,6 +90,7 @@ public class PullMessageProcessor implements NettyRequestProcessor {
     }
 
     /**
+     * 拉取消息
      * @param channel
      * @param request
      * @param brokerAllowSuspend
@@ -567,6 +568,12 @@ public class PullMessageProcessor implements NettyRequestProcessor {
         }
     }
 
+    /**
+     * 执行拉取请求消息
+     * @param channel
+     * @param request
+     * @throws RemotingCommandException
+     */
     public void executeRequestWhenWakeup(final Channel channel,
         final RemotingCommand request) throws RemotingCommandException {
         Runnable run = new Runnable() {

@@ -63,6 +63,7 @@ public class BrokerStartup {
     }
 
     /**
+     * 启动broker
      * @param controller
      * @return
      */
@@ -250,7 +251,7 @@ public class BrokerStartup {
                 messageStoreConfig);
             // remember all configs to prevent discard
             controller.getConfiguration().registerConfig(properties);
-
+            //
             boolean initResult = controller.initialize();
             if (!initResult) {
                 controller.shutdown();

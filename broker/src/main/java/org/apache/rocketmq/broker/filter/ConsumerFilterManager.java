@@ -110,8 +110,14 @@ public class ConsumerFilterManager extends ConfigManager {
         return consumerFilterData;
     }
 
+    /**
+     * 注册分组订阅数据
+     * @param consumerGroup
+     * @param subList
+     */
     public void register(final String consumerGroup, final Collection<SubscriptionData> subList) {
         for (SubscriptionData subscriptionData : subList) {
+            //注册Topic 消费者分组
             register(
                 subscriptionData.getTopic(),
                 consumerGroup,
@@ -121,7 +127,7 @@ public class ConsumerFilterManager extends ConfigManager {
             );
         }
 
-        // make illegal topic dead.
+        // make illegal topic dead. 获取当前消费者分组过滤数据
         Collection<ConsumerFilterData> groupFilterData = getByGroup(consumerGroup);
 
         Iterator<ConsumerFilterData> iterator = groupFilterData.iterator();
@@ -137,12 +143,22 @@ public class ConsumerFilterManager extends ConfigManager {
             }
 
             if (!exist && !filterData.isDead()) {
+                //失效过期消费者过滤数据
                 filterData.setDeadTime(System.currentTimeMillis());
                 log.info("Consumer filter changed: {}, make illegal topic dead:{}", consumerGroup, filterData);
             }
         }
     }
 
+    /**
+     * 注册消费者分组
+     * @param topic
+     * @param consumerGroup
+     * @param expression
+     * @param type
+     * @param clientVersion
+     * @return
+     */
     public boolean register(final String topic, final String consumerGroup, final String expression,
         final String type, final long clientVersion) {
         if (ExpressionType.isTagType(type)) {
@@ -166,12 +182,22 @@ public class ConsumerFilterManager extends ConfigManager {
         return filterDataMapByTopic.register(consumerGroup, expression, type, bloomFilterData, clientVersion);
     }
 
+    /**
+     * 注销消费者分组过滤数据
+     * @param consumerGroup
+     */
     public void unRegister(final String consumerGroup) {
         for (String topic : filterDataByTopic.keySet()) {
             this.filterDataByTopic.get(topic).unRegister(consumerGroup);
         }
     }
 
+    /**
+     * 获取topic对应的消费者分组过滤数据
+     * @param topic
+     * @param consumerGroup
+     * @return
+     */
     public ConsumerFilterData get(final String topic, final String consumerGroup) {
         if (!this.filterDataByTopic.containsKey(topic)) {
             return null;
@@ -183,6 +209,11 @@ public class ConsumerFilterManager extends ConfigManager {
         return this.filterDataByTopic.get(topic).getGroupFilterData().get(consumerGroup);
     }
 
+    /**
+     * 获取消费分组数据
+     * @param consumerGroup
+     * @return
+     */
     public Collection<ConsumerFilterData> getByGroup(final String consumerGroup) {
         Collection<ConsumerFilterData> ret = new HashSet<ConsumerFilterData>();
 
@@ -296,6 +327,9 @@ public class ConsumerFilterManager extends ConfigManager {
         return RemotingSerializable.toJson(this, prettyFormat);
     }
 
+    /**
+     * 清理消费分组过滤数据
+     */
     public void clean() {
         Iterator<Map.Entry<String, FilterDataMapByTopic>> topicIterator = this.filterDataByTopic.entrySet().iterator();
         while (topicIterator.hasNext()) {
@@ -329,11 +363,20 @@ public class ConsumerFilterManager extends ConfigManager {
         this.filterDataByTopic = filterDataByTopic;
     }
 
+    /**
+     * topic 消费者分组过滤器
+     */
     public static class FilterDataMapByTopic {
 
+        /**
+         *
+         */
         private ConcurrentMap<String/*consumer group*/, ConsumerFilterData>
             groupFilterData = new ConcurrentHashMap<String, ConsumerFilterData>();
 
+        /**
+         *
+         */
         private String topic;
 
         public FilterDataMapByTopic() {
@@ -343,6 +386,10 @@ public class ConsumerFilterManager extends ConfigManager {
             this.topic = topic;
         }
 
+        /**
+         * 注销消费分组过滤数据
+         * @param consumerGroup
+         */
         public void unRegister(String consumerGroup) {
             if (!this.groupFilterData.containsKey(consumerGroup)) {
                 return;
@@ -361,6 +408,15 @@ public class ConsumerFilterManager extends ConfigManager {
             data.setDeadTime(now);
         }
 
+        /**
+         * 注册消费者分组过滤器
+         * @param consumerGroup
+         * @param expression
+         * @param type
+         * @param bloomFilterData
+         * @param clientVersion
+         * @return
+         */
         public boolean register(String consumerGroup, String expression, String type, BloomFilterData bloomFilterData,
             long clientVersion) {
             ConsumerFilterData old = this.groupFilterData.get(consumerGroup);

@@ -20,7 +20,7 @@ package org.apache.rocketmq.common.subscription;
 import org.apache.rocketmq.common.MixAll;
 
 /**
- *
+ * 订阅分组配置
  */
 public class SubscriptionGroupConfig {
 

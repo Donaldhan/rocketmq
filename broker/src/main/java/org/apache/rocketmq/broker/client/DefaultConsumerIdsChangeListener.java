@@ -31,6 +31,11 @@ public class DefaultConsumerIdsChangeListener implements ConsumerIdsChangeListen
         this.brokerController = brokerController;
     }
 
+    /**
+     * @param event
+     * @param group
+     * @param args
+     */
     @Override
     public void handle(ConsumerGroupEvent event, String group, Object... args) {
         if (event == null) {
@@ -44,11 +49,13 @@ public class DefaultConsumerIdsChangeListener implements ConsumerIdsChangeListen
                 List<Channel> channels = (List<Channel>) args[0];
                 if (channels != null && brokerController.getBrokerConfig().isNotifyConsumerIdsChangedEnable()) {
                     for (Channel chl : channels) {
+                        //通知broker，分组消费者变更
                         this.brokerController.getBroker2Client().notifyConsumerIdsChanged(chl, group);
                     }
                 }
                 break;
             case UNREGISTER:
+                //注册分组
                 this.brokerController.getConsumerFilterManager().unRegister(group);
                 break;
             case REGISTER:
@@ -56,6 +63,7 @@ public class DefaultConsumerIdsChangeListener implements ConsumerIdsChangeListen
                     return;
                 }
                 Collection<SubscriptionData> subscriptionDataList = (Collection<SubscriptionData>) args[0];
+                //注册分组订阅数据
                 this.brokerController.getConsumerFilterManager().register(group, subscriptionDataList);
                 break;
             default:
