@@ -51,14 +51,32 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * Broker->>Client 主要功能如下：
+ * 1. 检查生产者事务状态
+ * 2. 通知消费者分组变更
+ * 3. 重置消费分组的offset
+ * 4. 获取消费者状态
+ */
 public class Broker2Client {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
 
+    /**
+     * @param brokerController
+     */
     public Broker2Client(BrokerController brokerController) {
         this.brokerController = brokerController;
     }
 
+    /**
+     * 检查生产者事务状态
+     * @param group
+     * @param channel
+     * @param requestHeader
+     * @param messageExt
+     * @throws Exception
+     */
     public void checkProducerTransactionState(
         final String group,
         final Channel channel,
@@ -74,12 +92,25 @@ public class Broker2Client {
         }
     }
 
+    /**
+     * @param channel
+     * @param request
+     * @return
+     * @throws RemotingSendRequestException
+     * @throws RemotingTimeoutException
+     * @throws InterruptedException
+     */
     public RemotingCommand callClient(final Channel channel,
                                       final RemotingCommand request
     ) throws RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
         return this.brokerController.getRemotingServer().invokeSync(channel, request, 10000);
     }
 
+    /**
+     * 通知消费者分组变更
+     * @param channel
+     * @param consumerGroup
+     */
     public void notifyConsumerIdsChanged(
         final Channel channel,
         final String consumerGroup) {
@@ -100,14 +131,30 @@ public class Broker2Client {
         }
     }
 
+    /**
+     * @param topic
+     * @param group
+     * @param timeStamp
+     * @param isForce
+     * @return
+     */
     public RemotingCommand resetOffset(String topic, String group, long timeStamp, boolean isForce) {
         return resetOffset(topic, group, timeStamp, isForce, false);
     }
 
+    /**
+     * 重置消费分组的offset
+     * @param topic
+     * @param group
+     * @param timeStamp
+     * @param isForce
+     * @param isC 是否为C语言
+     * @return
+     */
     public RemotingCommand resetOffset(String topic, String group, long timeStamp, boolean isForce,
                                        boolean isC) {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
-
+        //查询Topic配置
         TopicConfig topicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(topic);
         if (null == topicConfig) {
             log.error("[reset-offset] reset offset failed, no topic in this broker. topic={}", topic);
@@ -115,7 +162,7 @@ public class Broker2Client {
             response.setRemark("[reset-offset] reset offset failed, no topic in this broker. topic=" + topic);
             return response;
         }
-
+        //消费者offset Table
         Map<MessageQueue, Long> offsetTable = new HashMap<MessageQueue, Long>();
 
         for (int i = 0; i < topicConfig.getWriteQueueNums(); i++) {
@@ -123,7 +170,7 @@ public class Broker2Client {
             mq.setBrokerName(this.brokerController.getBrokerConfig().getBrokerName());
             mq.setTopic(topic);
             mq.setQueueId(i);
-
+            //从消费者offset管理器，查询offset
             long consumerOffset =
                 this.brokerController.getConsumerOffsetManager().queryOffset(group, topic, i);
             if (-1 == consumerOffset) {
@@ -146,8 +193,10 @@ public class Broker2Client {
             }
 
             if (isForce || timeStampOffset < consumerOffset) {
+                //时间戳offset
                 offsetTable.put(mq, timeStampOffset);
             } else {
+                //offset， id
                 offsetTable.put(mq, consumerOffset);
             }
         }
@@ -177,6 +226,7 @@ public class Broker2Client {
         if (consumerGroupInfo != null && !consumerGroupInfo.getAllChannel().isEmpty()) {
             ConcurrentMap<Channel, ClientChannelInfo> channelInfoTable =
                 consumerGroupInfo.getChannelInfoTable();
+            //通知消费分组中的消费者，offset重置成功，3.0.7功能以后有这个功能
             for (Map.Entry<Channel, ClientChannelInfo> entry : channelInfoTable.entrySet()) {
                 int version = entry.getValue().getVersion();
                 if (version >= MQVersion.Version.V3_0_7_SNAPSHOT.ordinal()) {
@@ -215,6 +265,10 @@ public class Broker2Client {
         return response;
     }
 
+    /**
+     * @param table
+     * @return
+     */
     private List<MessageQueueForC> convertOffsetTable2OffsetList(Map<MessageQueue, Long> table) {
         List<MessageQueueForC> list = new ArrayList<>();
         for (Entry<MessageQueue, Long> entry : table.entrySet()) {
@@ -226,6 +280,14 @@ public class Broker2Client {
         return list;
     }
 
+    /**
+     * 获取消费者状态
+     * TODO
+     * @param topic
+     * @param group
+     * @param originClientId
+     * @return
+     */
     public RemotingCommand getConsumeStatus(String topic, String group, String originClientId) {
         final RemotingCommand result = RemotingCommand.createResponseCommand(null);
 
@@ -238,6 +300,7 @@ public class Broker2Client {
 
         Map<String, Map<MessageQueue, Long>> consumerStatusTable =
             new HashMap<String, Map<MessageQueue, Long>>();
+        //TODO
         ConcurrentMap<Channel, ClientChannelInfo> channelInfoTable =
             this.brokerController.getConsumerManager().getConsumerGroupInfo(group).getChannelInfoTable();
         if (null == channelInfoTable || channelInfoTable.isEmpty()) {
@@ -267,7 +330,7 @@ public class Broker2Client {
                                 GetConsumerStatusBody body =
                                     GetConsumerStatusBody.decode(response.getBody(),
                                         GetConsumerStatusBody.class);
-
+                                //TODO
                                 consumerStatusTable.put(clientId, body.getMessageQueueTable());
                                 log.info(
                                     "[get-consumer-status] get consumer status success. topic={}, group={}, channelRemoteAddr={}",

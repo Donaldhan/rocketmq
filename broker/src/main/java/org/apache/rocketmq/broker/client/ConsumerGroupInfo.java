@@ -43,6 +43,9 @@ public class ConsumerGroupInfo {
      */
     private final ConcurrentMap<String/* Topic */, SubscriptionData> subscriptionTable =
         new ConcurrentHashMap<String, SubscriptionData>();
+    /**
+     * 消费者通道表
+     */
     private final ConcurrentMap<Channel, ClientChannelInfo> channelInfoTable =
         new ConcurrentHashMap<Channel, ClientChannelInfo>(16);
     private volatile ConsumeType consumeType;
@@ -100,6 +103,9 @@ public class ConsumerGroupInfo {
         return result;
     }
 
+    /**
+     * @param clientChannelInfo
+     */
     public void unregisterChannel(final ClientChannelInfo clientChannelInfo) {
         ClientChannelInfo old = this.channelInfoTable.remove(clientChannelInfo.getChannel());
         if (old != null) {
@@ -107,6 +113,11 @@ public class ConsumerGroupInfo {
         }
     }
 
+    /**
+     * @param remoteAddr
+     * @param channel
+     * @return
+     */
     public boolean doChannelCloseEvent(final String remoteAddr, final Channel channel) {
         final ClientChannelInfo info = this.channelInfoTable.remove(channel);
         if (info != null) {

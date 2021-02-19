@@ -35,6 +35,9 @@ import org.apache.rocketmq.remoting.common.RemotingUtil;
 
 /**
  * 消费者管理
+ * 1. 注册消费者；
+ * 2. 注销消费者；
+ * 3.
  */
 public class ConsumerManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
@@ -72,6 +75,10 @@ public class ConsumerManager {
         return null;
     }
 
+    /**
+     * @param group
+     * @return
+     */
     public ConsumerGroupInfo getConsumerGroupInfo(final String group) {
         return this.consumerTable.get(group);
     }
@@ -85,6 +92,10 @@ public class ConsumerManager {
         return 0;
     }
 
+    /**
+     * @param remoteAddr
+     * @param channel
+     */
     public void doChannelCloseEvent(final String remoteAddr, final Channel channel) {
         Iterator<Entry<String, ConsumerGroupInfo>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -97,15 +108,27 @@ public class ConsumerManager {
                     if (remove != null) {
                         log.info("unregister consumer ok, no any connection, and remove consumer group, {}",
                             next.getKey());
+                        //通知消费分组变更，消费者注销
                         this.consumerIdsChangeListener.handle(ConsumerGroupEvent.UNREGISTER, next.getKey());
                     }
                 }
-
+                ////通知消费分组变更，消费者变更
                 this.consumerIdsChangeListener.handle(ConsumerGroupEvent.CHANGE, next.getKey(), info.getAllChannel());
             }
         }
     }
 
+    /**
+     * 注册消费者
+     * @param group
+     * @param clientChannelInfo
+     * @param consumeType
+     * @param messageModel
+     * @param consumeFromWhere
+     * @param subList
+     * @param isNotifyConsumerIdsChangedEnable
+     * @return
+     */
     public boolean registerConsumer(final String group, final ClientChannelInfo clientChannelInfo,
         ConsumeType consumeType, MessageModel messageModel, ConsumeFromWhere consumeFromWhere,
         final Set<SubscriptionData> subList, boolean isNotifyConsumerIdsChangedEnable) {
@@ -124,15 +147,22 @@ public class ConsumerManager {
 
         if (r1 || r2) {
             if (isNotifyConsumerIdsChangedEnable) {
+                //通知消费分组变更，消费者变更
                 this.consumerIdsChangeListener.handle(ConsumerGroupEvent.CHANGE, group, consumerGroupInfo.getAllChannel());
             }
         }
-
+        //通知消费分组变更，消费者注册
         this.consumerIdsChangeListener.handle(ConsumerGroupEvent.REGISTER, group, subList);
 
         return r1 || r2;
     }
 
+    /**
+     * 注销消费者
+     * @param group
+     * @param clientChannelInfo
+     * @param isNotifyConsumerIdsChangedEnable
+     */
     public void unregisterConsumer(final String group, final ClientChannelInfo clientChannelInfo,
         boolean isNotifyConsumerIdsChangedEnable) {
         ConsumerGroupInfo consumerGroupInfo = this.consumerTable.get(group);
@@ -152,6 +182,9 @@ public class ConsumerManager {
         }
     }
 
+    /**
+     * 扫描非激活状态的通道
+     */
     public void scanNotActiveChannel() {
         Iterator<Entry<String, ConsumerGroupInfo>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -184,6 +217,11 @@ public class ConsumerManager {
         }
     }
 
+    /**
+     * 获取topic的消费者分组信息
+     * @param topic
+     * @return
+     */
     public HashSet<String> queryTopicConsumeByWho(final String topic) {
         HashSet<String> groups = new HashSet<>();
         Iterator<Entry<String, ConsumerGroupInfo>> it = this.consumerTable.entrySet().iterator();

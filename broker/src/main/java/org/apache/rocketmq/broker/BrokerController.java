@@ -215,10 +215,19 @@ public class BrokerController {
         this.pullRequestHoldService = new PullRequestHoldService(this);
         // 消息达到监听器
         this.messageArrivingListener = new NotifyMessageArrivingListener(this.pullRequestHoldService);
-        //TODO
+        //消费者变更监听器
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
+        /*
+         * Broker->>Client 主要功能如下：
+         * 1. 检查生产者事务状态
+         * 2. 通知消费者分组变更
+         * 3. 重置消费分组的offset
+         * 4. 获取消费者状态
+         */
         this.broker2Client = new Broker2Client(this);
+        //消费者管理
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
+        //TODO
         this.producerManager = new ProducerManager();
         this.clientHousekeepingService = new ClientHousekeepingService(this);
         this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
