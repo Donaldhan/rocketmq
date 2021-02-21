@@ -27,6 +27,9 @@ public class ClientChannelInfo {
     private final String clientId;
     private final LanguageCode language;
     private final int version;
+    /**
+     * 通道上次更新时间
+     */
     private volatile long lastUpdateTimestamp = System.currentTimeMillis();
 
     public ClientChannelInfo(Channel channel) {

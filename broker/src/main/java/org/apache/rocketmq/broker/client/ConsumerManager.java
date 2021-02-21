@@ -37,7 +37,6 @@ import org.apache.rocketmq.remoting.common.RemotingUtil;
  * 消费者管理
  * 1. 注册消费者；
  * 2. 注销消费者；
- * 3.
  */
 public class ConsumerManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);

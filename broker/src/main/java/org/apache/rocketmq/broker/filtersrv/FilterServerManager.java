@@ -35,6 +35,9 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+/**
+ * FiltersrvStartup
+ */
 public class FilterServerManager {
 
     public static final long FILTER_SERVER_MAX_IDLE_TIME_MILLS = 30000;
@@ -50,6 +53,9 @@ public class FilterServerManager {
         this.brokerController = brokerController;
     }
 
+    /**
+     *
+     */
     public void start() {
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -64,6 +70,9 @@ public class FilterServerManager {
         }, 1000 * 5, 1000 * 30, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * 创建过滤服务
+     */
     public void createFilterServer() {
         int more =
             this.brokerController.getBrokerConfig().getFilterServerNums() - this.filterServerTable.size();
@@ -73,6 +82,12 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * @see # FiltersrvStartup
+     *
+     * 构建过滤server 启动脚本
+     * @return
+     */
     private String buildStartCommand() {
         String config = "";
         if (BrokerStartup.configFile != null) {
@@ -94,10 +109,18 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     *
+     */
     public void shutdown() {
         this.scheduledExecutorService.shutdown();
     }
 
+    /**
+     * 注册过滤server
+     * @param channel
+     * @param filterServerAddr
+     */
     public void registerFilterServer(final Channel channel, final String filterServerAddr) {
         FilterServerInfo filterServerInfo = this.filterServerTable.get(channel);
         if (filterServerInfo != null) {
@@ -111,6 +134,9 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * 扫描失效的过滤通道
+     */
     public void scanNotActiveChannel() {
 
         Iterator<Entry<Channel, FilterServerInfo>> it = this.filterServerTable.entrySet().iterator();
@@ -126,6 +152,11 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * 通道关闭，移除通道
+     * @param remoteAddr
+     * @param channel
+     */
     public void doChannelCloseEvent(final String remoteAddr, final Channel channel) {
         FilterServerInfo old = this.filterServerTable.remove(channel);
         if (old != null) {
@@ -134,6 +165,9 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * @return
+     */
     public List<String> buildNewFilterServerList() {
         List<String> addr = new ArrayList<>();
         Iterator<Entry<Channel, FilterServerInfo>> it = this.filterServerTable.entrySet().iterator();
@@ -144,6 +178,9 @@ public class FilterServerManager {
         return addr;
     }
 
+    /**
+     *
+     */
     static class FilterServerInfo {
         private String filterServerAddr;
         private long lastUpdateTimestamp;

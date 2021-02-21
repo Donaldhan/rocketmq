@@ -227,11 +227,15 @@ public class BrokerController {
         this.broker2Client = new Broker2Client(this);
         //消费者管理
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
-        //TODO
+        //生产者管理
         this.producerManager = new ProducerManager();
+        //客户端保活服务：清除失效的客户端通道
         this.clientHousekeepingService = new ClientHousekeepingService(this);
+        //Broker<->NameServer:注册、注销
         this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
+        //FiltersrvStartup unfind
         this.filterServerManager = new FilterServerManager(this);
+        // TODO
         this.slaveSynchronize = new SlaveSynchronize(this);
         this.sendThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getSendThreadPoolQueueCapacity());
         this.pullThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getPullThreadPoolQueueCapacity());

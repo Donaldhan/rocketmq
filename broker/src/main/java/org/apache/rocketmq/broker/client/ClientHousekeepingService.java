@@ -27,6 +27,9 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.ChannelEventListener;
 
+/**
+ * 客户端保活服务：清除失效的客户端通道
+ */
 public class ClientHousekeepingService implements ChannelEventListener {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -38,6 +41,13 @@ public class ClientHousekeepingService implements ChannelEventListener {
         this.brokerController = brokerController;
     }
 
+    /**
+     * 启动
+     * 扫描异常通道：
+     * 1. 失效的生产者
+     * 2. 失效的消费者
+     * 3. 失效的过滤通道
+     */
     public void start() {
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -52,6 +62,9 @@ public class ClientHousekeepingService implements ChannelEventListener {
         }, 1000 * 10, 1000 * 10, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     *
+     */
     private void scanExceptionChannel() {
         this.brokerController.getProducerManager().scanNotActiveChannel();
         this.brokerController.getConsumerManager().scanNotActiveChannel();
@@ -67,6 +80,11 @@ public class ClientHousekeepingService implements ChannelEventListener {
 
     }
 
+    /**
+     * 通道关闭事件
+     * @param remoteAddr
+     * @param channel
+     */
     @Override
     public void onChannelClose(String remoteAddr, Channel channel) {
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
@@ -74,6 +92,11 @@ public class ClientHousekeepingService implements ChannelEventListener {
         this.brokerController.getFilterServerManager().doChannelCloseEvent(remoteAddr, channel);
     }
 
+    /**
+     * 异常关闭通道
+     * @param remoteAddr
+     * @param channel
+     */
     @Override
     public void onChannelException(String remoteAddr, Channel channel) {
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
@@ -81,6 +104,10 @@ public class ClientHousekeepingService implements ChannelEventListener {
         this.brokerController.getFilterServerManager().doChannelCloseEvent(remoteAddr, channel);
     }
 
+    /**
+     * @param remoteAddr
+     * @param channel
+     */
     @Override
     public void onChannelIdle(String remoteAddr, Channel channel) {
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
