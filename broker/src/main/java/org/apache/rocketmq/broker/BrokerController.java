@@ -235,20 +235,35 @@ public class BrokerController {
         this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
         //FiltersrvStartup unfind
         this.filterServerManager = new FilterServerManager(this);
-        // TODO
+        /**
+         * Broker：Slave 同步 Master信息
+         * 1.同步Master的Topic配置
+         * 2. 同步消费者Offset并持久化
+         * 3. 同步延时Offset
+         * 4. 同步消费者分组订阅信息
+         */
         this.slaveSynchronize = new SlaveSynchronize(this);
+        //发送线程池队列
         this.sendThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getSendThreadPoolQueueCapacity());
+        //拉取线程队列
         this.pullThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getPullThreadPoolQueueCapacity());
+        //查询线程池队列
         this.queryThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getQueryThreadPoolQueueCapacity());
+        //客户端管理器线程池队列
         this.clientManagerThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getClientManagerThreadPoolQueueCapacity());
+        //消费者管理器线程池队列
         this.consumerManagerThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getConsumerManagerThreadPoolQueueCapacity());
+        //心跳线程池队列
         this.heartbeatThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getHeartbeatThreadPoolQueueCapacity());
+        //结束事务线程池队列
         this.endTransactionThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getEndTransactionPoolQueueCapacity());
-
+        //Broker状态管理器
         this.brokerStatsManager = new BrokerStatsManager(this.brokerConfig.getBrokerClusterName());
+        //
         this.setStoreHost(new InetSocketAddress(this.getBrokerConfig().getBrokerIP1(), this.getNettyServerConfig().getListenPort()));
-
+        //清除队列中的过期请求（发送线程池、拉取线程池、心跳线程池、结束事务线程池）
         this.brokerFastFailure = new BrokerFastFailure(this);
+        //构建Broker配置
         this.configuration = new Configuration(
             log,
             BrokerPathConfigHelper.getBrokerConfigPath(),

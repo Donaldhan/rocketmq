@@ -29,7 +29,11 @@ import org.apache.rocketmq.common.protocol.body.TopicConfigSerializeWrapper;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 
 /**
- *
+ * Broker：Slave 同步 Master信息
+ * 1.同步Master的Topic配置
+ * 2. 同步消费者Offset并持久化
+ * 3. 同步延时Offset
+ * 4. 同步消费者分组订阅信息
  */
 public class SlaveSynchronize {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
@@ -52,7 +56,11 @@ public class SlaveSynchronize {
     }
 
     /**
-     *
+     * Broker：Slave 同步 Master信息
+     * 1.同步Master的Topic配置
+     * 2. 同步消费者Offset并持久化
+     * 3. 同步延时Offset
+     * 4. 同步消费者分组订阅信息
      */
     public void syncAll() {
         this.syncTopicConfig();
@@ -62,22 +70,26 @@ public class SlaveSynchronize {
     }
 
     /**
-     *
+     * Slave 同步Master的Topic配置
      */
     private void syncTopicConfig() {
         String masterAddrBak = this.masterAddr;
+        //当前Broker为Slave
         if (masterAddrBak != null && !masterAddrBak.equals(brokerController.getBrokerAddr())) {
             try {
                 TopicConfigSerializeWrapper topicWrapper =
                     this.brokerController.getBrokerOuterAPI().getAllTopicConfig(masterAddrBak);
+                //版本不一致
                 if (!this.brokerController.getTopicConfigManager().getDataVersion()
                     .equals(topicWrapper.getDataVersion())) {
-
+                    //新数据版本
                     this.brokerController.getTopicConfigManager().getDataVersion()
                         .assignNewOne(topicWrapper.getDataVersion());
                     this.brokerController.getTopicConfigManager().getTopicConfigTable().clear();
+                    //同步最新Topic配置
                     this.brokerController.getTopicConfigManager().getTopicConfigTable()
                         .putAll(topicWrapper.getTopicConfigTable());
+                    //持久化Topic配置
                     this.brokerController.getTopicConfigManager().persist();
 
                     log.info("Update slave topic config from master, {}", masterAddrBak);
@@ -89,7 +101,7 @@ public class SlaveSynchronize {
     }
 
     /**
-     *
+     * 同步消费者Offset并持久化
      */
     private void syncConsumerOffset() {
         String masterAddrBak = this.masterAddr;
@@ -108,7 +120,7 @@ public class SlaveSynchronize {
     }
 
     /**
-     *
+     * 同步延时Offset
      */
     private void syncDelayOffset() {
         String masterAddrBak = this.masterAddr;
@@ -135,7 +147,7 @@ public class SlaveSynchronize {
     }
 
     /**
-     *
+     * 同步消费者分组订阅信息
      */
     private void syncSubscriptionGroupConfig() {
         String masterAddrBak = this.masterAddr;
@@ -149,11 +161,14 @@ public class SlaveSynchronize {
                     .equals(subscriptionWrapper.getDataVersion())) {
                     SubscriptionGroupManager subscriptionGroupManager =
                         this.brokerController.getSubscriptionGroupManager();
+                    //更新订阅数据版本
                     subscriptionGroupManager.getDataVersion().assignNewOne(
                         subscriptionWrapper.getDataVersion());
+                    //更新消费者分组订阅信息
                     subscriptionGroupManager.getSubscriptionGroupTable().clear();
                     subscriptionGroupManager.getSubscriptionGroupTable().putAll(
                         subscriptionWrapper.getSubscriptionGroupTable());
+                    //持久化
                     subscriptionGroupManager.persist();
                     log.info("Update slave Subscription Group from master, {}", masterAddrBak);
                 }

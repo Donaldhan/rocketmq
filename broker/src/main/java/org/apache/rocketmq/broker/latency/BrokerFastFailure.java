@@ -31,6 +31,7 @@ import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
 /**
  * BrokerFastFailure will cover {@link BrokerController#sendThreadPoolQueue} and
  * {@link BrokerController#pullThreadPoolQueue}
+ * 清除队列中的过期请求（发送线程池、拉取线程池、心跳线程池、结束事务线程池）
  */
 public class BrokerFastFailure {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
@@ -42,6 +43,10 @@ public class BrokerFastFailure {
         this.brokerController = brokerController;
     }
 
+    /**
+     * @param runnable
+     * @return
+     */
     public static RequestTask castRunnable(final Runnable runnable) {
         try {
             if (runnable instanceof FutureTaskExt) {
@@ -55,6 +60,9 @@ public class BrokerFastFailure {
         return null;
     }
 
+    /**
+     *
+     */
     public void start() {
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -66,6 +74,9 @@ public class BrokerFastFailure {
         }, 1000, 10, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * 清除队列中的过期请求（发送线程池、拉取线程池、心跳线程池、结束事务线程池）
+     */
     private void cleanExpiredRequest() {
         while (this.brokerController.getMessageStore().isOSPageCacheBusy()) {
             try {
@@ -97,6 +108,11 @@ public class BrokerFastFailure {
             .brokerController.getBrokerConfig().getWaitTimeMillsInTransactionQueue());
     }
 
+    /**
+     * 清除队列过期请求
+     * @param blockingQueue
+     * @param maxWaitTimeMillsInQueue
+     */
     void cleanExpiredRequestInQueue(final BlockingQueue<Runnable> blockingQueue, final long maxWaitTimeMillsInQueue) {
         while (true) {
             try {
