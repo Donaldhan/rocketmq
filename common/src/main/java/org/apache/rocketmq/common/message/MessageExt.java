@@ -22,6 +22,9 @@ import java.nio.ByteBuffer;
 import org.apache.rocketmq.common.TopicFilterType;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 
+/**
+ *
+ */
 public class MessageExt extends Message {
     private static final long serialVersionUID = 5720810158625748049L;
 
@@ -30,6 +33,9 @@ public class MessageExt extends Message {
     private int storeSize;
 
     private long queueOffset;
+    /**
+     *
+     */
     private int sysFlag;
     private long bornTimestamp;
     private SocketAddress bornHost;
@@ -64,6 +70,11 @@ public class MessageExt extends Message {
         return TopicFilterType.SINGLE_TAG;
     }
 
+    /**
+     * @param socketAddress
+     * @param byteBuffer
+     * @return
+     */
     public static ByteBuffer socketAddress2ByteBuffer(final SocketAddress socketAddress, final ByteBuffer byteBuffer) {
         InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
         byteBuffer.put(inetSocketAddress.getAddress().getAddress(), 0, 4);
@@ -89,6 +100,10 @@ public class MessageExt extends Message {
         return socketAddress2ByteBuffer(this.storeHost);
     }
 
+    /**
+     * @param byteBuffer
+     * @return
+     */
     public ByteBuffer getStoreHostBytes(ByteBuffer byteBuffer) {
         return socketAddress2ByteBuffer(this.storeHost, byteBuffer);
     }

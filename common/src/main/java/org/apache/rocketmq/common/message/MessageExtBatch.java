@@ -19,6 +19,9 @@ package org.apache.rocketmq.common.message;
 
 import java.nio.ByteBuffer;
 
+/**
+ *
+ */
 public class MessageExtBatch extends MessageExt {
 
     private static final long serialVersionUID = -2353110995348498537L;

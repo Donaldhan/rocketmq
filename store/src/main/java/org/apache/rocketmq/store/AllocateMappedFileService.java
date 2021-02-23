@@ -33,12 +33,16 @@ import org.apache.rocketmq.store.config.BrokerRole;
 
 /**
  * Create MappedFile in advance
+ * MappedFile 分配服务
  */
 public class AllocateMappedFileService extends ServiceThread {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private static int waitTimeOut = 1000 * 5;
     private ConcurrentMap<String, AllocateRequest> requestTable =
         new ConcurrentHashMap<String, AllocateRequest>();
+    /**
+     * 分配请求
+     */
     private PriorityBlockingQueue<AllocateRequest> requestQueue =
         new PriorityBlockingQueue<AllocateRequest>();
     private volatile boolean hasException = false;
@@ -48,11 +52,23 @@ public class AllocateMappedFileService extends ServiceThread {
         this.messageStore = messageStore;
     }
 
+    /**
+     * 请求分配给定路径对应的MappedFile；
+     * 1. 先将分配请求放入队列；
+     * 2. 等待分配请求处理完，返回分配的MappedFile
+     *
+     * {@link AllocateMappedFileService#mmapOperation()}
+     * @param nextFilePath
+     * @param nextNextFilePath
+     * @param fileSize
+     * @return
+     */
     public MappedFile putRequestAndReturnMappedFile(String nextFilePath, String nextNextFilePath, int fileSize) {
         int canSubmitRequests = 2;
         if (this.messageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
             if (this.messageStore.getMessageStoreConfig().isFastFailIfNoBufferInStorePool()
-                && BrokerRole.SLAVE != this.messageStore.getMessageStoreConfig().getBrokerRole()) { //if broker is slave, don't fast fail even no buffer in pool
+                && BrokerRole.SLAVE != this.messageStore.getMessageStoreConfig().getBrokerRole()) {
+                //if broker is slave, don't fast fail even no buffer in pool
                 canSubmitRequests = this.messageStore.getTransientStorePool().remainBufferNumbs() - this.requestQueue.size();
             }
         }
@@ -97,6 +113,7 @@ public class AllocateMappedFileService extends ServiceThread {
         AllocateRequest result = this.requestTable.get(nextFilePath);
         try {
             if (result != null) {
+                //等待分配MappedFile
                 boolean waitOK = result.getCountDownLatch().await(waitTimeOut, TimeUnit.MILLISECONDS);
                 if (!waitOK) {
                     log.warn("create mmap timeout " + result.getFilePath() + " " + result.getFileSize());
@@ -131,6 +148,9 @@ public class AllocateMappedFileService extends ServiceThread {
         }
     }
 
+    /**
+     *
+     */
     public void run() {
         log.info(this.getServiceName() + " service started");
 
@@ -142,6 +162,9 @@ public class AllocateMappedFileService extends ServiceThread {
 
     /**
      * Only interrupted by the external thread, will return false
+     * 拉取分配MappedFile请求，根据请求创建MappedFile
+     *
+     * @see AllocateMappedFileService#putRequestAndReturnMappedFile(java.lang.String, java.lang.String, int)
      */
     private boolean mmapOperation() {
         boolean isSuccess = false;
@@ -167,6 +190,7 @@ public class AllocateMappedFileService extends ServiceThread {
                 if (messageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
                     try {
                         mappedFile = ServiceLoader.load(MappedFile.class).iterator().next();
+                        //初始化一个MappedFile
                         mappedFile.init(req.getFilePath(), req.getFileSize(), messageStore.getTransientStorePool());
                     } catch (RuntimeException e) {
                         log.warn("Use default implementation.");
@@ -212,11 +236,15 @@ public class AllocateMappedFileService extends ServiceThread {
             }
         } finally {
             if (req != null && isSuccess)
+                //成功通知，释放闭锁
                 req.getCountDownLatch().countDown();
         }
         return true;
     }
 
+    /**
+     * 分配MappedFile 请求
+     */
     static class AllocateRequest implements Comparable<AllocateRequest> {
         // Full file path
         private String filePath;
@@ -224,6 +252,10 @@ public class AllocateMappedFileService extends ServiceThread {
         private CountDownLatch countDownLatch = new CountDownLatch(1);
         private volatile MappedFile mappedFile = null;
 
+        /**
+         * @param filePath
+         * @param fileSize
+         */
         public AllocateRequest(String filePath, int fileSize) {
             this.filePath = filePath;
             this.fileSize = fileSize;

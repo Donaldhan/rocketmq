@@ -117,16 +117,28 @@ public class DefaultMessageStore implements MessageStore {
 
     boolean shutDownNormal = false;
 
+    /**
+     * @param messageStoreConfig
+     * @param brokerStatsManager
+     * @param messageArrivingListener
+     * @param brokerConfig
+     * @throws IOException
+     */
     public DefaultMessageStore(final MessageStoreConfig messageStoreConfig, final BrokerStatsManager brokerStatsManager,
         final MessageArrivingListener messageArrivingListener, final BrokerConfig brokerConfig) throws IOException {
+        //消息达到监听器
         this.messageArrivingListener = messageArrivingListener;
         this.brokerConfig = brokerConfig;
         this.messageStoreConfig = messageStoreConfig;
         this.brokerStatsManager = brokerStatsManager;
+        //MappedFile分配服务
         this.allocateMappedFileService = new AllocateMappedFileService(this);
+        //TODO
         if (messageStoreConfig.isEnableDLegerCommitLog()) {
+            //
             this.commitLog = new DLedgerCommitLog(this);
         } else {
+            //
             this.commitLog = new CommitLog(this);
         }
         this.consumeQueueTable = new ConcurrentHashMap<>(32);

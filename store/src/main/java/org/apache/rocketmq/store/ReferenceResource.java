@@ -18,6 +18,9 @@ package org.apache.rocketmq.store;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ *
+ */
 public abstract class ReferenceResource {
     protected final AtomicLong refCount = new AtomicLong(1);
     protected volatile boolean available = true;
@@ -36,6 +39,9 @@ public abstract class ReferenceResource {
         return false;
     }
 
+    /**
+     * @return
+     */
     public boolean isAvailable() {
         return this.available;
     }
@@ -53,6 +59,9 @@ public abstract class ReferenceResource {
         }
     }
 
+    /**
+     *
+     */
     public void release() {
         long value = this.refCount.decrementAndGet();
         if (value > 0)
