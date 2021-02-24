@@ -54,13 +54,26 @@ public class CommitLog {
      */
     protected final static int BLANK_MAGIC_CODE = -875286124;
     protected final MappedFileQueue mappedFileQueue;
+    /**
+     * ，默认消息存储
+     */
     protected final DefaultMessageStore defaultMessageStore;
+    /**
+     * 刷新提交日志log
+     */
     private final FlushCommitLogService flushCommitLogService;
-
-    //If TransientStorePool enabled, we must flush message to FileChannel at fixed periods
+    /**
+     * If TransientStorePool enabled, we must flush message to FileChannel at fixed periods
+     */
     private final FlushCommitLogService commitLogService;
 
+    /**
+     *  默认添加消息回调
+     */
     private final AppendMessageCallback appendMessageCallback;
+    /**
+     * 批量消息编码器
+     */
     private final ThreadLocal<MessageExtBatchEncoder> batchEncoderThreadLocal;
     protected HashMap<String/* topic-queueid */, Long/* offset */> topicQueueTable = new HashMap<String, Long>(1024);
     protected volatile long confirmOffset = -1L;
@@ -74,14 +87,17 @@ public class CommitLog {
         this.defaultMessageStore = defaultMessageStore;
 
         if (FlushDiskType.SYNC_FLUSH == defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
+            //分组刷盘，完成提交日志刷盘请求， 并唤醒消费者
             this.flushCommitLogService = new GroupCommitService();
         } else {
+            //实时刷盘，根据提交日志刷新间隔，刷新到磁盘
             this.flushCommitLogService = new FlushRealTimeService();
         }
-
+        // TODO
         this.commitLogService = new CommitRealTimeService();
 
         this.appendMessageCallback = new DefaultAppendMessageCallback(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
+        //批量消息编码器
         batchEncoderThreadLocal = new ThreadLocal<MessageExtBatchEncoder>() {
             @Override
             protected MessageExtBatchEncoder initialValue() {
@@ -922,6 +938,9 @@ public class CommitLog {
         protected static final int RETRY_TIMES_OVER = 10;
     }
 
+    /**
+     *
+     */
     class CommitRealTimeService extends FlushCommitLogService {
 
         private long lastCommitTimestamp = 0;
@@ -975,10 +994,16 @@ public class CommitLog {
         }
     }
 
+    /**
+     * 根据提交日志刷新间隔，刷新到磁盘
+     */
     class FlushRealTimeService extends FlushCommitLogService {
         private long lastFlushTimestamp = 0;
         private long printTimes = 0;
 
+        /**
+         *
+         */
         public void run() {
             CommitLog.log.info(this.getServiceName() + " service started");
 
@@ -993,7 +1018,7 @@ public class CommitLog {
 
                 boolean printFlushProgress = false;
 
-                // Print flush progress
+                // Print flush progress 打印刷盘进度
                 long currentTimeMillis = System.currentTimeMillis();
                 if (currentTimeMillis >= (this.lastFlushTimestamp + flushPhysicQueueThoroughInterval)) {
                     this.lastFlushTimestamp = currentTimeMillis;
@@ -1029,6 +1054,7 @@ public class CommitLog {
             }
 
             // Normal shutdown, to ensure that all the flush before exit
+            //正常关闭，确保在退出时，全部刷盘
             boolean result = false;
             for (int i = 0; i < RETRY_TIMES_OVER && !result; i++) {
                 result = CommitLog.this.mappedFileQueue.flush(0);
@@ -1056,6 +1082,9 @@ public class CommitLog {
         }
     }
 
+    /**
+     * 分组提交请求
+     */
     public static class GroupCommitRequest {
         private final long nextOffset;
         private final CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -1069,11 +1098,20 @@ public class CommitLog {
             return nextOffset;
         }
 
+        /**
+         * 唤醒消费者
+         * @param flushOK
+         */
         public void wakeupCustomer(final boolean flushOK) {
             this.flushOK = flushOK;
             this.countDownLatch.countDown();
         }
 
+        /**
+         * 等待刷盘
+         * @param timeout
+         * @return
+         */
         public boolean waitForFlush(long timeout) {
             try {
                 this.countDownLatch.await(timeout, TimeUnit.MILLISECONDS);
@@ -1086,12 +1124,16 @@ public class CommitLog {
     }
 
     /**
+     * 完成提交日志刷盘请求， 并唤醒消费者
      * GroupCommit Service
      */
     class GroupCommitService extends FlushCommitLogService {
         private volatile List<GroupCommitRequest> requestsWrite = new ArrayList<GroupCommitRequest>();
         private volatile List<GroupCommitRequest> requestsRead = new ArrayList<GroupCommitRequest>();
 
+        /**
+         * @param request
+         */
         public synchronized void putRequest(final GroupCommitRequest request) {
             synchronized (this.requestsWrite) {
                 this.requestsWrite.add(request);
@@ -1101,12 +1143,18 @@ public class CommitLog {
             }
         }
 
+        /**
+         * 转换请求
+         */
         private void swapRequests() {
             List<GroupCommitRequest> tmp = this.requestsWrite;
             this.requestsWrite = this.requestsRead;
             this.requestsRead = tmp;
         }
 
+        /**
+         * 完成提交日志刷盘请求， 并唤醒消费者
+         */
         private void doCommit() {
             synchronized (this.requestsRead) {
                 if (!this.requestsRead.isEmpty()) {
@@ -1139,6 +1187,9 @@ public class CommitLog {
             }
         }
 
+        /**
+         * 提交消息log到磁盘
+         */
         public void run() {
             CommitLog.log.info(this.getServiceName() + " service started");
 
@@ -1185,7 +1236,7 @@ public class CommitLog {
     }
 
     /**
-     *
+     * 默认添加消息回调
      */
     class DefaultAppendMessageCallback implements AppendMessageCallback {
         // File at the end of the minimum fixed length empty
@@ -1472,6 +1523,9 @@ public class CommitLog {
 
     }
 
+    /**
+     * 批量消息编码器
+     */
     public static class MessageExtBatchEncoder {
         // Store the message content
         private final ByteBuffer msgBatchMemory;

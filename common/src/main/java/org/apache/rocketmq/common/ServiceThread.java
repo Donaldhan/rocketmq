@@ -135,6 +135,9 @@ public abstract class ServiceThread implements Runnable {
         }
     }
 
+    /**
+     * @param interval
+     */
     protected void waitForRunning(long interval) {
         if (hasNotified.compareAndSet(true, false)) {
             this.onWaitEnd();

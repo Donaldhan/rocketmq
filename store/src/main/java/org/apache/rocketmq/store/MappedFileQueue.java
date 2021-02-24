@@ -60,6 +60,11 @@ public class MappedFileQueue {
 
     private volatile long storeTimestamp = 0;
 
+    /**
+     * @param storePath
+     * @param mappedFileSize
+     * @param allocateMappedFileService
+     */
     public MappedFileQueue(final String storePath, int mappedFileSize,
         AllocateMappedFileService allocateMappedFileService) {
         this.storePath = storePath;
@@ -438,6 +443,10 @@ public class MappedFileQueue {
         return deleteCount;
     }
 
+    /**
+     * @param flushLeastPages
+     * @return
+     */
     public boolean flush(final int flushLeastPages) {
         boolean result = true;
         MappedFile mappedFile = this.findMappedFileByOffset(this.flushedWhere, this.flushedWhere == 0);

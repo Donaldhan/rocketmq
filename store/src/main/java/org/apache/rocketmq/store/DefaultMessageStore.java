@@ -82,6 +82,9 @@ public class DefaultMessageStore implements MessageStore {
 
     private final IndexService indexService;
 
+    /**
+     * Mapped文件分配服务
+     */
     private final AllocateMappedFileService allocateMappedFileService;
 
     private final ReputMessageService reputMessageService;
@@ -1020,6 +1023,7 @@ public class DefaultMessageStore implements MessageStore {
         return 0;
     }
 
+    @Override
     public void cleanExpiredConsumerQueue() {
         long minCommitLogOffset = this.commitLog.getMinOffset();
 

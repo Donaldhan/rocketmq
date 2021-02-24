@@ -334,7 +334,7 @@ public class MappedFile extends ReferenceResource {
     }
 
     /**
-     *
+     * 刷新MappedFile到磁盘
      * @return The current flushed position
      */
     public int flush(final int flushLeastPages) {

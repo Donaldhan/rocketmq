@@ -31,6 +31,7 @@ public class MessageStoreConfig {
     private String storePathRootDir = System.getProperty("user.home") + File.separator + "store";
     /**
      * The directory in which the commitlog is kept
+     * 提交日志存储路径
      */
     @ImportantField
     private String storePathCommitLog = System.getProperty("user.home") + File.separator + "store"
@@ -38,6 +39,7 @@ public class MessageStoreConfig {
 
     /**
      * CommitLog file size,default is 1G
+     * 提交文件大小
      */
     private int mapedFileSizeCommitLog = 1024 * 1024 * 1024;
      /**
