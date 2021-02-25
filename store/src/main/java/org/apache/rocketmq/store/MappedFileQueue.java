@@ -464,6 +464,11 @@ public class MappedFileQueue {
         return result;
     }
 
+    /**
+     * 提交缓存到MappedFile
+     * @param commitLeastPages
+     * @return
+     */
     public boolean commit(final int commitLeastPages) {
         boolean result = true;
         MappedFile mappedFile = this.findMappedFileByOffset(this.committedWhere, this.committedWhere == 0);

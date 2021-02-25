@@ -71,21 +71,49 @@ public class DLedgerCommitLog extends CommitLog {
 
     private boolean isInrecoveringOldCommitlog = false;
 
+    /**
+     * broker-n0.conf
+     * ```conf
+     * brokerClusterName = RaftCluster
+     * brokerName=RaftNode00
+     * listenPort=30911
+     * namesrvAddr=192.168.5.135:9876;192.168.5.136:9876;192.168.5.137:9876;
+     * storePathRootDir=/rocketmq/data/rmqstore/node00
+     * storePathCommitLog=/rocketmq/data/rmqstore/node00/commitlog
+     * enableDLegerCommitLog=true
+     * dLegerGroup=RaftNode00
+     * dLegerPeers=n0-192.168.5.135:40911;n1-192.168.5.136:40912;n2-192.168.5.137:40913
+     * ## must be unique
+     * dLegerSelfId=n0
+     * sendMessageThreadPoolNums=2
+     * ```
+     * ```
+     * nohup sh bin/mqnamesrv > nameserv.log &
+     * nohup sh bin/mqbroker   -c conf/dledger/broker-n0.conf  > broker.log &
+     * ```
+     * @param defaultMessageStore
+     */
     public DLedgerCommitLog(final DefaultMessageStore defaultMessageStore) {
         super(defaultMessageStore);
         dLedgerConfig =  new DLedgerConfig();
         dLedgerConfig.setEnableDiskForceClean(defaultMessageStore.getMessageStoreConfig().isCleanFileForciblyEnable());
         dLedgerConfig.setStoreType(DLedgerConfig.FILE);
+        //server id
         dLedgerConfig.setSelfId(defaultMessageStore.getMessageStoreConfig().getdLegerSelfId());
+        //分组
         dLedgerConfig.setGroup(defaultMessageStore.getMessageStoreConfig().getdLegerGroup());
+        //Peers
         dLedgerConfig.setPeers(defaultMessageStore.getMessageStoreConfig().getdLegerPeers());
         dLedgerConfig.setStoreBaseDir(defaultMessageStore.getMessageStoreConfig().getStorePathRootDir());
         dLedgerConfig.setMappedFileSizeForEntryData(defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog());
         dLedgerConfig.setDeleteWhen(defaultMessageStore.getMessageStoreConfig().getDeleteWhen());
+        //文件保留时间
         dLedgerConfig.setFileReservedHours(defaultMessageStore.getMessageStoreConfig().getFileReservedTime() + 1);
         id = Integer.valueOf(dLedgerConfig.getSelfId().substring(1)) + 1;
+        //DLedgerServer
         dLedgerServer = new DLedgerServer(dLedgerConfig);
         dLedgerFileStore = (DLedgerMmapFileStore) dLedgerServer.getdLedgerStore();
+        //DLedgerMmapFileStore
         DLedgerMmapFileStore.AppendHook appendHook = (entry, buffer, bodyOffset) -> {
             assert bodyOffset == DLedgerEntry.BODY_OFFSET;
             buffer.position(buffer.position() + bodyOffset + MessageDecoder.PHY_POS_POSITION);

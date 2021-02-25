@@ -81,6 +81,9 @@ public class CommitLog {
     private volatile long beginTimeInLock = 0;
     protected final PutMessageLock putMessageLock;
 
+    /**
+     * @param defaultMessageStore
+     */
     public CommitLog(final DefaultMessageStore defaultMessageStore) {
         this.mappedFileQueue = new MappedFileQueue(defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog(),
             defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog(), defaultMessageStore.getAllocateMappedFileService());
@@ -93,9 +96,9 @@ public class CommitLog {
             //实时刷盘，根据提交日志刷新间隔，刷新到磁盘
             this.flushCommitLogService = new FlushRealTimeService();
         }
-        // TODO
+        // 根据提交日志间隔，实时提交缓存到MappedFile
         this.commitLogService = new CommitRealTimeService();
-
+        //默认添加消息回调
         this.appendMessageCallback = new DefaultAppendMessageCallback(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
         //批量消息编码器
         batchEncoderThreadLocal = new ThreadLocal<MessageExtBatchEncoder>() {
@@ -104,16 +107,23 @@ public class CommitLog {
                 return new MessageExtBatchEncoder(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
             }
         };
+        //
         this.putMessageLock = defaultMessageStore.getMessageStoreConfig().isUseReentrantLockWhenPutMessage() ? new PutMessageReentrantLock() : new PutMessageSpinLock();
 
     }
 
+    /**
+     * @return
+     */
     public boolean load() {
         boolean result = this.mappedFileQueue.load();
         log.info("load commit log " + (result ? "OK" : "Failed"));
         return result;
     }
 
+    /**
+     *
+     */
     public void start() {
         this.flushCommitLogService.start();
 
@@ -939,7 +949,7 @@ public class CommitLog {
     }
 
     /**
-     *
+     * 根据提交日志间隔，实时提交缓存到MappedFile
      */
     class CommitRealTimeService extends FlushCommitLogService {
 
