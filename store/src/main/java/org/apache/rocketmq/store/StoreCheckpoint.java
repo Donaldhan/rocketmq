@@ -27,10 +27,22 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+/**
+ *
+ */
 public class StoreCheckpoint {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
+    /**
+     *
+     */
     private final RandomAccessFile randomAccessFile;
+    /**
+     *
+     */
     private final FileChannel fileChannel;
+    /**
+     *
+     */
     private final MappedByteBuffer mappedByteBuffer;
     private volatile long physicMsgTimestamp = 0;
     private volatile long logicsMsgTimestamp = 0;
@@ -75,6 +87,9 @@ public class StoreCheckpoint {
         }
     }
 
+    /**
+     * 将物理、逻辑、索引消息时间戳包到检查点文件，并刷盘
+     */
     public void flush() {
         this.mappedByteBuffer.putLong(0, this.physicMsgTimestamp);
         this.mappedByteBuffer.putLong(8, this.logicsMsgTimestamp);

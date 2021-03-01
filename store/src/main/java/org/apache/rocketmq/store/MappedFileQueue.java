@@ -49,15 +49,24 @@ public class MappedFileQueue {
     private final int mappedFileSize;
 
     /**
-     * 映射文件
+     * 提交日志映射文件
      */
     private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
     private final AllocateMappedFileService allocateMappedFileService;
 
+    /**
+     * 刷新位置
+     */
     private long flushedWhere = 0;
+    /**
+     * 提交位置
+     */
     private long committedWhere = 0;
 
+    /**
+     * 存储时间戳
+     */
     private volatile long storeTimestamp = 0;
 
     /**
@@ -161,6 +170,10 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 加载提交日志目录下的日志文件
+     * @return
+     */
     public boolean load() {
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();
@@ -444,6 +457,7 @@ public class MappedFileQueue {
     }
 
     /**
+     * 刷新给定offset对应的MappedFile到磁盘
      * @param flushLeastPages
      * @return
      */

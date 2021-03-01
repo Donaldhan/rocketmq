@@ -35,6 +35,7 @@ import java.util.List;
  * <li>2. And is week reliable.</li>
  * <li>3. Be careful, address returned is always less than 0.</li>
  * <li>4. Pls keep this file small.</li>
+ * 存储一些不重要的东西，不日消息存储时间等
  */
 public class ConsumeQueueExt {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);

@@ -113,6 +113,7 @@ public class CommitLog {
     }
 
     /**
+     * 加载提交日志目录下的日志文件
      * @return
      */
     public boolean load() {
@@ -122,12 +123,19 @@ public class CommitLog {
     }
 
     /**
+     * 分组刷盘，完成提交日志刷盘请求， 并唤醒消费者
+     * @see GroupCommitService#start()
+     * 根据提交日志刷新间隔，刷新到磁盘
+     * @see FlushRealTimeService#start()
+     * 根据提交日志间隔，实时提交缓存到MappedFile
+     * {@link CommitRealTimeService#start()}
      *
      */
     public void start() {
+        //刷新提交日志到磁盘
         this.flushCommitLogService.start();
-
         if (defaultMessageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
+            //根据提交日志间隔，实时提交缓存到MappedFile
             this.commitLogService.start();
         }
     }
@@ -140,24 +148,46 @@ public class CommitLog {
         this.flushCommitLogService.shutdown();
     }
 
+    /**
+     * 刷新提交日志
+     * @return
+     */
     public long flush() {
+        // 提交缓存到MappedFile
         this.mappedFileQueue.commit(0);
+        //刷新MappedFile到磁盘
         this.mappedFileQueue.flush(0);
         return this.mappedFileQueue.getFlushedWhere();
     }
 
+    /**
+     * @return
+     */
     public long getMaxOffset() {
         return this.mappedFileQueue.getMaxOffset();
     }
 
+    /**
+     * @return
+     */
     public long remainHowManyDataToCommit() {
         return this.mappedFileQueue.remainHowManyDataToCommit();
     }
 
+    /**
+     * @return
+     */
     public long remainHowManyDataToFlush() {
         return this.mappedFileQueue.remainHowManyDataToFlush();
     }
 
+    /**
+     * @param expiredTime
+     * @param deleteFilesInterval
+     * @param intervalForcibly
+     * @param cleanImmediately
+     * @return
+     */
     public int deleteExpiredFile(
         final long expiredTime,
         final int deleteFilesInterval,

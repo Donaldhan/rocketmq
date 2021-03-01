@@ -47,6 +47,9 @@ public class ConsumeQueue {
     private final int mappedFileSize;
     private long maxPhysicOffset = -1;
     private volatile long minLogicOffset = 0;
+    /**
+     * 拓展消费者队列
+     */
     private ConsumeQueueExt consumeQueueExt = null;
 
     public ConsumeQueue(
@@ -326,6 +329,10 @@ public class ConsumeQueue {
         return lastOffset;
     }
 
+    /**
+     * @param flushLeastPages
+     * @return
+     */
     public boolean flush(final int flushLeastPages) {
         boolean result = this.mappedFileQueue.flush(flushLeastPages);
         if (isExtReadEnable()) {

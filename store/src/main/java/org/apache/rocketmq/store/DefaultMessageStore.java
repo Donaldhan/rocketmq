@@ -74,6 +74,9 @@ public class DefaultMessageStore implements MessageStore {
      */
     private final ConcurrentMap<String/* topic */, ConcurrentMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
 
+    /**
+     * 刷新消费者队列服务
+     */
     private final FlushConsumeQueueService flushConsumeQueueService;
 
     private final CleanCommitLogService cleanCommitLogService;
@@ -138,18 +141,22 @@ public class DefaultMessageStore implements MessageStore {
         this.allocateMappedFileService = new AllocateMappedFileService(this);
         //TODO
         if (messageStoreConfig.isEnableDLegerCommitLog()) {
-            //
+            //DLedger模式提交日志
             this.commitLog = new DLedgerCommitLog(this);
         } else {
-            //
+            // 提交日志
             this.commitLog = new CommitLog(this);
         }
         this.consumeQueueTable = new ConcurrentHashMap<>(32);
-
+        //刷新消费队列服务
         this.flushConsumeQueueService = new FlushConsumeQueueService();
+        //TODO
         this.cleanCommitLogService = new CleanCommitLogService();
+        //
         this.cleanConsumeQueueService = new CleanConsumeQueueService();
+        //
         this.storeStatsService = new StoreStatsService();
+        //
         this.indexService = new IndexService(this);
         if (!messageStoreConfig.isEnableDLegerCommitLog()) {
             this.haService = new HAService(this);
@@ -1565,6 +1572,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     *
+     */
     class CleanCommitLogService {
 
         private final static int MAX_MANUAL_DELETE_FILE_TIMES = 20;
@@ -1765,10 +1775,20 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 刷新最近的page（offset）对应的日志文件，如果需要则保存检查点
+     */
     class FlushConsumeQueueService extends ServiceThread {
         private static final int RETRY_TIMES_OVER = 3;
         private long lastFlushTimestamp = 0;
 
+        /**
+         * 刷新给定offset对应的MappedFile到磁盘，及最近的page文件
+         * {@link MappedFileQueue#flush(int)}
+         * 将物理、逻辑、索引消息时间戳包到检查点文件，并刷盘
+         * {@org.apache.rocketmq.store.StoreCheckpoint#flush()}
+         * @param retryTimes
+         */
         private void doFlush(int retryTimes) {
             int flushConsumeQueueLeastPages = DefaultMessageStore.this.getMessageStoreConfig().getFlushConsumeQueueLeastPages();
 
@@ -1792,19 +1812,24 @@ public class DefaultMessageStore implements MessageStore {
                 for (ConsumeQueue cq : maps.values()) {
                     boolean result = false;
                     for (int i = 0; i < retryTimes && !result; i++) {
+                        // 刷新给定offset对应的MappedFile到磁盘，及最近的page文件
                         result = cq.flush(flushConsumeQueueLeastPages);
                     }
                 }
             }
-
+            //offset为0，则保存检查点
             if (0 == flushConsumeQueueLeastPages) {
                 if (logicsMsgTimestamp > 0) {
                     DefaultMessageStore.this.getStoreCheckpoint().setLogicsMsgTimestamp(logicsMsgTimestamp);
                 }
+//                将物理、逻辑、索引消息时间戳包到检查点文件，并刷盘
                 DefaultMessageStore.this.getStoreCheckpoint().flush();
             }
         }
 
+        /**
+         *
+         */
         public void run() {
             DefaultMessageStore.log.info(this.getServiceName() + " service started");
 
