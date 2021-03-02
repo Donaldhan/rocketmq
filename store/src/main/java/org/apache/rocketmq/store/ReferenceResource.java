@@ -46,6 +46,9 @@ public abstract class ReferenceResource {
         return this.available;
     }
 
+    /**
+     * @param intervalForcibly
+     */
     public void shutdown(final long intervalForcibly) {
         if (this.available) {
             this.available = false;

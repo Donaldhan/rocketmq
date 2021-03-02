@@ -28,12 +28,17 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.apache.rocketmq.store.SelectMappedBufferResult;
 
+/**
+ * HA连接
+ */
 public class HAConnection {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private final HAService haService;
     private final SocketChannel socketChannel;
     private final String clientAddr;
+    //写服务
     private WriteSocketService writeSocketService;
+    //读服务
     private ReadSocketService readSocketService;
 
     private volatile long slaveRequestOffset = -1;
@@ -53,6 +58,9 @@ public class HAConnection {
         this.haService.getConnectionCount().incrementAndGet();
     }
 
+    /**
+     *
+     */
     public void start() {
         this.readSocketService.start();
         this.writeSocketService.start();
@@ -78,6 +86,9 @@ public class HAConnection {
         return socketChannel;
     }
 
+    /**
+     * 读Socket服务
+     */
     class ReadSocketService extends ServiceThread {
         private static final int READ_MAX_BUFFER_SIZE = 1024 * 1024;
         private final Selector selector;
@@ -86,6 +97,10 @@ public class HAConnection {
         private int processPostion = 0;
         private volatile long lastReadTimestamp = System.currentTimeMillis();
 
+        /**
+         * @param socketChannel
+         * @throws IOException
+         */
         public ReadSocketService(final SocketChannel socketChannel) throws IOException {
             this.selector = RemotingUtil.openSelector();
             this.socketChannel = socketChannel;
@@ -100,6 +115,7 @@ public class HAConnection {
             while (!this.isStopped()) {
                 try {
                     this.selector.select(1000);
+                    //处理读事件
                     boolean ok = this.processReadEvent();
                     if (!ok) {
                         HAConnection.log.error("processReadEvent error");
@@ -145,6 +161,9 @@ public class HAConnection {
             return ReadSocketService.class.getSimpleName();
         }
 
+        /**
+         * @return
+         */
         private boolean processReadEvent() {
             int readSizeZeroTimes = 0;
 
@@ -169,7 +188,7 @@ public class HAConnection {
                                 HAConnection.this.slaveRequestOffset = readOffset;
                                 log.info("slave[" + HAConnection.this.clientAddr + "] request offset " + readOffset);
                             }
-
+                            //TODO  KEY
                             HAConnection.this.haService.notifyTransferSome(HAConnection.this.slaveAckOffset);
                         }
                     } else if (readSize == 0) {
@@ -190,6 +209,9 @@ public class HAConnection {
         }
     }
 
+    /**
+     * 写socket服务
+     */
     class WriteSocketService extends ServiceThread {
         private final Selector selector;
         private final SocketChannel socketChannel;
@@ -256,7 +278,7 @@ public class HAConnection {
                             this.byteBufferHeader.putLong(this.nextTransferFromWhere);
                             this.byteBufferHeader.putInt(0);
                             this.byteBufferHeader.flip();
-
+                            //同步日志数据
                             this.lastWriteOver = this.transferData();
                             if (!this.lastWriteOver)
                                 continue;
@@ -269,6 +291,7 @@ public class HAConnection {
 
                     SelectMappedBufferResult selectResult =
                         HAConnection.this.haService.getDefaultMessageStore().getCommitLogData(this.nextTransferFromWhere);
+                    //重新check
                     if (selectResult != null) {
                         int size = selectResult.getSize();
                         if (size > HAConnection.this.haService.getDefaultMessageStore().getMessageStoreConfig().getHaTransferBatchSize()) {
@@ -327,6 +350,11 @@ public class HAConnection {
             HAConnection.log.info(this.getServiceName() + " service end");
         }
 
+        /**
+         * 同步文件数据
+         * @return
+         * @throws Exception
+         */
         private boolean transferData() throws Exception {
             int writeSizeZeroTimes = 0;
             // Write Header

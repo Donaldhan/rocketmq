@@ -36,6 +36,7 @@ import org.apache.rocketmq.common.message.MessageExtBatch;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.config.FlushDiskType;
+import org.apache.rocketmq.store.ha.HAConnection;
 import org.apache.rocketmq.store.ha.HAService;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 
@@ -713,6 +714,11 @@ public class CommitLog {
         return putMessageResult;
     }
 
+    /**
+     * @param result
+     * @param putMessageResult
+     * @param messageExt
+     */
     public void handleDiskFlush(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
         // Synchronization flush
         if (FlushDiskType.SYNC_FLUSH == this.defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
@@ -740,6 +746,13 @@ public class CommitLog {
         }
     }
 
+    /**
+     * {@link HAConnection.ReadSocketService#processReadEvent()}
+     * {@link HAService#notifyTransferSome(long)}
+     * @param result
+     * @param putMessageResult
+     * @param messageExt
+     */
     public void handleHA(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
         if (BrokerRole.SYNC_MASTER == this.defaultMessageStore.getMessageStoreConfig().getBrokerRole()) {
             HAService service = this.defaultMessageStore.getHaService();
@@ -882,6 +895,9 @@ public class CommitLog {
         return -1;
     }
 
+    /**
+     * @return
+     */
     public long getMinOffset() {
         MappedFile mappedFile = this.mappedFileQueue.getFirstMappedFile();
         if (mappedFile != null) {
@@ -911,6 +927,10 @@ public class CommitLog {
         return null;
     }
 
+    /**
+     * @param offset
+     * @return
+     */
     public long rollNextFile(final long offset) {
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         return offset + mappedFileSize - offset % mappedFileSize;
@@ -943,6 +963,10 @@ public class CommitLog {
         }
     }
 
+    /**
+     * @param intervalForcibly
+     * @return
+     */
     public boolean retryDeleteFirstFile(final long intervalForcibly) {
         return this.mappedFileQueue.retryDeleteFirstFile(intervalForcibly);
     }
@@ -1164,7 +1188,7 @@ public class CommitLog {
     }
 
     /**
-     * 完成提交日志刷盘请求， 并唤醒消费者
+     * 完成提交日志刷盘请求， 并唤刷盘请求
      * GroupCommit Service
      */
     class GroupCommitService extends FlushCommitLogService {

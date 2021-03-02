@@ -103,6 +103,9 @@ public class MessageStoreConfig {
      */
     private int deleteConsumeQueueFilesInterval = 100;
     private int destroyMapedFileIntervalForcibly = 1000 * 120;
+    /**
+     *
+     */
     private int redeleteHangedFileInterval = 1000 * 120;
     /**
      * When to delete,default is at 4 am

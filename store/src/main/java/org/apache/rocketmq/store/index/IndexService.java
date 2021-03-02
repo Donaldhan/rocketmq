@@ -33,6 +33,9 @@ import org.apache.rocketmq.store.DefaultMessageStore;
 import org.apache.rocketmq.store.DispatchRequest;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 
+/**
+ *
+ */
 public class IndexService {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     /**
@@ -87,6 +90,10 @@ public class IndexService {
         return true;
     }
 
+    /**
+     * 删除小于offset对应的索引文件
+     * @param offset
+     */
     public void deleteExpiredFile(long offset) {
         Object[] files = null;
         try {

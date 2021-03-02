@@ -40,18 +40,30 @@ import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.apache.rocketmq.store.CommitLog;
 import org.apache.rocketmq.store.DefaultMessageStore;
 
+/**
+ * 高可用服务
+ */
 public class HAService {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     private final AtomicInteger connectionCount = new AtomicInteger(0);
 
+    /**
+     * Slave连接
+     */
     private final List<HAConnection> connectionList = new LinkedList<>();
 
+    /**
+     * Slave连接监听服务
+     */
     private final AcceptSocketService acceptSocketService;
 
     private final DefaultMessageStore defaultMessageStore;
 
     private final WaitNotifyObject waitNotifyObject = new WaitNotifyObject();
+    /**
+     * 推送到Slave的最大offset
+     */
     private final AtomicLong push2SlaveMaxOffset = new AtomicLong(0);
 
     private final GroupTransferService groupTransferService;
@@ -85,6 +97,10 @@ public class HAService {
         return result;
     }
 
+    /**
+     * 更新Slave最大offset成功，则唤醒消费者
+     * @param offset
+     */
     public void notifyTransferSome(final long offset) {
         for (long value = this.push2SlaveMaxOffset.get(); offset > value; ) {
             boolean ok = this.push2SlaveMaxOffset.compareAndSet(value, offset);
@@ -155,6 +171,7 @@ public class HAService {
 
     /**
      * Listens to slave connections to create {@link HAConnection}.
+     * 监听所有Slave的连接，并创建HAConnection
      */
     class AcceptSocketService extends ServiceThread {
         private final SocketAddress socketAddressListen;
@@ -253,9 +270,14 @@ public class HAService {
     class GroupTransferService extends ServiceThread {
 
         private final WaitNotifyObject notifyTransferObject = new WaitNotifyObject();
+        //
         private volatile List<CommitLog.GroupCommitRequest> requestsWrite = new ArrayList<>();
+        //
         private volatile List<CommitLog.GroupCommitRequest> requestsRead = new ArrayList<>();
 
+        /**
+         * @param request
+         */
         public synchronized void putRequest(final CommitLog.GroupCommitRequest request) {
             synchronized (this.requestsWrite) {
                 this.requestsWrite.add(request);
@@ -265,16 +287,25 @@ public class HAService {
             }
         }
 
+        /**
+         *
+         */
         public void notifyTransferSome() {
             this.notifyTransferObject.wakeup();
         }
 
+        /**
+         *
+         */
         private void swapRequests() {
             List<CommitLog.GroupCommitRequest> tmp = this.requestsWrite;
             this.requestsWrite = this.requestsRead;
             this.requestsRead = tmp;
         }
 
+        /**
+         *
+         */
         private void doWaitTransfer() {
             synchronized (this.requestsRead) {
                 if (!this.requestsRead.isEmpty()) {
@@ -288,7 +319,7 @@ public class HAService {
                         if (!transferOK) {
                             log.warn("transfer messsage to slave timeout, " + req.getNextOffset());
                         }
-
+                        //唤醒消费者
                         req.wakeupCustomer(transferOK);
                     }
 
@@ -297,6 +328,9 @@ public class HAService {
             }
         }
 
+        /**
+         *
+         */
         public void run() {
             log.info(this.getServiceName() + " service started");
 

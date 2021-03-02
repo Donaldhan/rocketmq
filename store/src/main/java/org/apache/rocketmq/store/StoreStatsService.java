@@ -29,6 +29,9 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+/**
+ * 消息生产与消费状态统计服务
+ */
 public class StoreStatsService extends ServiceThread {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
@@ -56,6 +59,9 @@ public class StoreStatsService extends ServiceThread {
     private final LinkedList<CallSnapshot> getTimesFoundList = new LinkedList<CallSnapshot>();
     private final LinkedList<CallSnapshot> getTimesMissList = new LinkedList<CallSnapshot>();
     private final LinkedList<CallSnapshot> transferedMsgCountList = new LinkedList<CallSnapshot>();
+    /**
+     * 消息分布时间
+     */
     private volatile AtomicLong[] putMessageDistributeTime;
     private long messageStoreBootTimestamp = System.currentTimeMillis();
     private volatile long putMessageEntireTimeMax = 0;
@@ -70,10 +76,17 @@ public class StoreStatsService extends ServiceThread {
     private ReentrantLock lockSampling = new ReentrantLock();
     private long lastPrintTimestamp = System.currentTimeMillis();
 
+    /**
+     *
+     */
     public StoreStatsService() {
         this.initPutMessageDistributeTime();
     }
 
+    /**
+     * 初始化消息分布时间
+     * @return
+     */
     private AtomicLong[] initPutMessageDistributeTime() {
         AtomicLong[] next = new AtomicLong[13];
         for (int i = 0; i < next.length; i++) {
@@ -574,8 +587,17 @@ public class StoreStatsService extends ServiceThread {
         return putMessageTopicSizeTotal;
     }
 
+    /**
+     *
+     */
     static class CallSnapshot {
+        /**
+         *
+         */
         public final long timestamp;
+        /**
+         *
+         */
         public final long callTimesTotal;
 
         public CallSnapshot(long timestamp, long callTimesTotal) {

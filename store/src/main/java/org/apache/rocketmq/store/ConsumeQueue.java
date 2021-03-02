@@ -342,12 +342,21 @@ public class ConsumeQueue {
         return result;
     }
 
+    /**
+     * 删除小于offset对应的文件
+     * @param offset
+     * @return
+     */
     public int deleteExpiredFile(long offset) {
         int cnt = this.mappedFileQueue.deleteExpiredFileByOffset(offset, CQ_STORE_UNIT_SIZE);
         this.correctMinOffset(offset);
         return cnt;
     }
 
+    /**
+     * 矫正最小的offset
+     * @param phyMinOffset
+     */
     public void correctMinOffset(long phyMinOffset) {
         MappedFile mappedFile = this.mappedFileQueue.getFirstMappedFile();
         long minExtAddr = 1;

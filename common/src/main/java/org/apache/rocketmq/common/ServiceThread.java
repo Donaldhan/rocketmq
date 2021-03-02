@@ -121,6 +121,9 @@ public abstract class ServiceThread implements Runnable {
         }
     }
 
+    /**
+     *
+     */
     public void makeStop() {
         if (!started.get()) {
             return;

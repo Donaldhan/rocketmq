@@ -22,14 +22,23 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 import java.util.HashMap;
 
+/**
+ *
+ */
 public class WaitNotifyObject {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
+    /**
+     * 等待线程
+     */
     protected final HashMap<Long/* thread id */, Boolean/* notified */> waitingThreadTable =
         new HashMap<Long, Boolean>(16);
 
     protected volatile boolean hasNotified = false;
 
+    /**
+     *
+     */
     public void wakeup() {
         synchronized (this) {
             if (!this.hasNotified) {
@@ -39,6 +48,9 @@ public class WaitNotifyObject {
         }
     }
 
+    /**
+     * @param interval
+     */
     protected void waitForRunning(long interval) {
         synchronized (this) {
             if (this.hasNotified) {
@@ -58,9 +70,15 @@ public class WaitNotifyObject {
         }
     }
 
+    /**
+     *
+     */
     protected void onWaitEnd() {
     }
 
+    /**
+     *
+     */
     public void wakeupAll() {
         synchronized (this) {
             boolean needNotify = false;
@@ -76,6 +94,9 @@ public class WaitNotifyObject {
         }
     }
 
+    /**
+     * @param interval
+     */
     public void allWaitForRunning(long interval) {
         long currentThreadId = Thread.currentThread().getId();
         synchronized (this) {
@@ -97,6 +118,9 @@ public class WaitNotifyObject {
         }
     }
 
+    /**
+     *
+     */
     public void removeFromWaitingThreadTable() {
         long currentThreadId = Thread.currentThread().getId();
         synchronized (this) {

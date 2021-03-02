@@ -116,6 +116,10 @@ public class MappedFileQueue {
         return (MappedFile) mfs[mfs.length - 1];
     }
 
+    /**
+     * @param reservedMappedFiles
+     * @return
+     */
     private Object[] copyMappedFiles(final int reservedMappedFiles) {
         Object[] mfs;
 
@@ -147,6 +151,9 @@ public class MappedFileQueue {
         this.deleteExpiredFile(willRemoveFiles);
     }
 
+    /**
+     * @param files
+     */
     void deleteExpiredFile(List<MappedFile> files) {
 
         if (!files.isEmpty()) {
@@ -367,6 +374,14 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 删除过期的文件
+     * @param expiredTime
+     * @param deleteFilesInterval
+     * @param intervalForcibly
+     * @param cleanImmediately
+     * @return
+     */
     public int deleteExpiredFileByTime(final long expiredTime,
         final int deleteFilesInterval,
         final long intervalForcibly,
@@ -413,6 +428,11 @@ public class MappedFileQueue {
         return deleteCount;
     }
 
+    /**
+     * @param offset
+     * @param unitSize
+     * @return
+     */
     public int deleteExpiredFileByOffset(long offset, int unitSize) {
         Object[] mfs = this.copyMappedFiles(0);
 
@@ -592,6 +612,11 @@ public class MappedFileQueue {
         return size;
     }
 
+    /**
+     * 重试删除第一个文件
+     * @param intervalForcibly
+     * @return
+     */
     public boolean retryDeleteFirstFile(final long intervalForcibly) {
         MappedFile mappedFile = this.getFirstMappedFile();
         if (mappedFile != null) {

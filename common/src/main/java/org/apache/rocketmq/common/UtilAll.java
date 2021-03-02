@@ -95,6 +95,10 @@ public class UtilAll {
         return System.currentTimeMillis() - beginTime;
     }
 
+    /**
+     * @param when
+     * @return
+     */
     public static boolean isItTimeToDo(final String when) {
         String[] whiles = when.split(";");
         if (whiles.length > 0) {
@@ -195,6 +199,10 @@ public class UtilAll {
             cal.get(Calendar.SECOND));
     }
 
+    /**
+     * @param path
+     * @return
+     */
     public static double getDiskPartitionSpaceUsedPercent(final String path) {
         if (null == path || path.isEmpty())
             return -1;
