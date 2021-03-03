@@ -115,6 +115,9 @@ public class DefaultMessageStore implements MessageStore {
 
     private AtomicLong printTimes = new AtomicLong(0);
 
+    /**
+     * 提交日志分发器
+     */
     private final LinkedList<CommitLogDispatcher> dispatcherList;
 
     private RandomAccessFile lockFile;
@@ -163,9 +166,9 @@ public class DefaultMessageStore implements MessageStore {
         } else {
             this.haService = null;
         }
-        //TODO
+        //重新分发消息服务
         this.reputMessageService = new ReputMessageService();
-
+        //TODO
         this.scheduleMessageService = new ScheduleMessageService(this);
 
         this.transientStorePool = new TransientStorePool(messageStoreConfig);
@@ -179,6 +182,7 @@ public class DefaultMessageStore implements MessageStore {
         this.indexService.start();
 
         this.dispatcherList = new LinkedList<>();
+        //TODO read
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
@@ -1486,6 +1490,10 @@ public class DefaultMessageStore implements MessageStore {
         return runningFlags;
     }
 
+    /**
+     * 分发提交日志请求
+     * @param req
+     */
     public void doDispatch(DispatchRequest req) {
         for (CommitLogDispatcher dispatcher : this.dispatcherList) {
             dispatcher.dispatch(req);
@@ -1546,6 +1554,9 @@ public class DefaultMessageStore implements MessageStore {
         }, 6, TimeUnit.SECONDS);
     }
 
+    /**
+     * TODO read
+     */
     class CommitLogDispatcherBuildConsumeQueue implements CommitLogDispatcher {
 
         @Override
@@ -1563,6 +1574,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * TODO read
+     */
     class CommitLogDispatcherBuildIndex implements CommitLogDispatcher {
 
         @Override
@@ -1882,6 +1896,11 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 重新分发消息
+     * 1. 通知提交日志分发器
+     * 2. 通知消息达到监听器
+     */
     class ReputMessageService extends ServiceThread {
 
         private volatile long reputFromOffset = 0;
@@ -1915,10 +1934,21 @@ public class DefaultMessageStore implements MessageStore {
             return DefaultMessageStore.this.commitLog.getMaxOffset() - this.reputFromOffset;
         }
 
+        /**
+         * 提交日志可用
+         * @return
+         */
         private boolean isCommitLogAvailable() {
             return this.reputFromOffset < DefaultMessageStore.this.commitLog.getMaxOffset();
         }
 
+        /**
+         *
+         * {@link CommitLogDispatcherBuildIndex#doDispatch(DispatchRequest)}
+         * {@link CommitLogDispatcherBuildConsumeQueue#doDispatch(DispatchRequest)}
+         *  通知有消息达到
+         * {@link NotifyMessageArrivingListener#arriving(java.lang.String, int, long, long, long, byte[], java.util.Map)}
+         */
         private void doReput() {
             if (this.reputFromOffset < DefaultMessageStore.this.commitLog.getMinOffset()) {
                 log.warn("The reputFromOffset={} is smaller than minPyOffset={}, this usually indicate that the dispatch behind too much and the commitlog has expired.",
@@ -1944,10 +1974,12 @@ public class DefaultMessageStore implements MessageStore {
 
                             if (dispatchRequest.isSuccess()) {
                                 if (size > 0) {
+                                    //分发提交日志请求
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
-
+                                    //非slave，且为长轮训
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {
+                                        //通知到达监听器，消息已到达
                                         DefaultMessageStore.this.messageArrivingListener.arriving(dispatchRequest.getTopic(),
                                             dispatchRequest.getQueueId(), dispatchRequest.getConsumeQueueOffset() + 1,
                                             dispatchRequest.getTagsCode(), dispatchRequest.getStoreTimestamp(),
@@ -1955,6 +1987,7 @@ public class DefaultMessageStore implements MessageStore {
                                     }
 
                                     this.reputFromOffset += size;
+                                    //如果为slave则记录Topic相关状态
                                     readSize += size;
                                     if (DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole() == BrokerRole.SLAVE) {
                                         DefaultMessageStore.this.storeStatsService

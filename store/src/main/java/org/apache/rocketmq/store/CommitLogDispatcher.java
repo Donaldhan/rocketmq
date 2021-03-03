@@ -22,5 +22,8 @@ package org.apache.rocketmq.store;
  */
 public interface CommitLogDispatcher {
 
+    /**
+     * @param request
+     */
     void dispatch(final DispatchRequest request);
 }

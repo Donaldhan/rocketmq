@@ -200,11 +200,17 @@ public class CommitLog {
 
     /**
      * Read CommitLog data, use data replication
+     * 读取提交日志数据
      */
     public SelectMappedBufferResult getData(final long offset) {
         return this.getData(offset, offset == 0);
     }
 
+    /**
+     * @param offset
+     * @param returnFirstOnNotFound
+     * @return
+     */
     public SelectMappedBufferResult getData(final long offset, final boolean returnFirstOnNotFound) {
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, returnFirstOnNotFound);
@@ -295,7 +301,7 @@ public class CommitLog {
 
     /**
      * check the message and returns the message size
-     *
+     * 检查消息，返回消息大小
      * @return 0 Come the end of the file // >0 Normal messages // -1 Message checksum failure
      */
     public DispatchRequest checkMessageAndReturnSize(java.nio.ByteBuffer byteBuffer, final boolean checkCRC,

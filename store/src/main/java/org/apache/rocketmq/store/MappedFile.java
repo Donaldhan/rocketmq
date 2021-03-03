@@ -481,6 +481,10 @@ public class MappedFile extends ReferenceResource {
         return null;
     }
 
+    /**
+     * @param pos
+     * @return
+     */
     public SelectMappedBufferResult selectMappedBuffer(int pos) {
         int readPosition = getReadPosition();
         if (pos < readPosition && pos >= 0) {

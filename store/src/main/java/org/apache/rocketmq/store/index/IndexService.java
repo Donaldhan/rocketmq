@@ -205,6 +205,10 @@ public class IndexService {
         return topic + "#" + key;
     }
 
+    /**
+     * TODO
+     * @param req
+     */
     public void buildIndex(DispatchRequest req) {
         IndexFile indexFile = retryGetAndCreateIndexFile();
         if (indexFile != null) {
