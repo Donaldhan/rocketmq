@@ -206,7 +206,7 @@ public class IndexService {
     }
 
     /**
-     * TODO
+     * 构建消息索引，并存储到对应的索引文件
      * @param req
      */
     public void buildIndex(DispatchRequest req) {
@@ -256,6 +256,12 @@ public class IndexService {
         }
     }
 
+    /**
+     * @param indexFile
+     * @param msg
+     * @param idxKey
+     * @return
+     */
     private IndexFile putKey(IndexFile indexFile, DispatchRequest msg, String idxKey) {
         for (boolean ok = indexFile.putKey(idxKey, msg.getCommitLogOffset(), msg.getStoreTimestamp()); !ok; ) {
             log.warn("Index file [" + indexFile.getFileName() + "] is full, trying to create another one");

@@ -1500,6 +1500,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * @param dispatchRequest
+     */
     public void putMessagePositionInfo(DispatchRequest dispatchRequest) {
         ConsumeQueue cq = this.findConsumeQueue(dispatchRequest.getTopic(), dispatchRequest.getQueueId());
         cq.putMessagePositionInfoWrapper(dispatchRequest);
@@ -1555,7 +1558,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * TODO read
+     * 存储消息到消息对应映射的MapperFile
      */
     class CommitLogDispatcherBuildConsumeQueue implements CommitLogDispatcher {
 
@@ -1565,6 +1568,7 @@ public class DefaultMessageStore implements MessageStore {
             switch (tranType) {
                 case MessageSysFlag.TRANSACTION_NOT_TYPE:
                 case MessageSysFlag.TRANSACTION_COMMIT_TYPE:
+                    //事务提交
                     DefaultMessageStore.this.putMessagePositionInfo(request);
                     break;
                 case MessageSysFlag.TRANSACTION_PREPARED_TYPE:
@@ -1575,7 +1579,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * TODO read
+     * 构建消息索引，并存储到对应的索引文件
      */
     class CommitLogDispatcherBuildIndex implements CommitLogDispatcher {
 
