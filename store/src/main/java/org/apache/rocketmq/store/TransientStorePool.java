@@ -29,7 +29,7 @@ import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
 /**
- *
+ * 字节buffer pool
  */
 public class TransientStorePool {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -51,15 +51,15 @@ public class TransientStorePool {
 
     /**
      * It's a heavy init method.
+     * 初始化字节buffer池
      */
     public void init() {
         for (int i = 0; i < poolSize; i++) {
+            //使用直接内存
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(fileSize);
-
             final long address = ((DirectBuffer) byteBuffer).address();
             Pointer pointer = new Pointer(address);
             LibC.INSTANCE.mlock(pointer, new NativeLong(fileSize));
-
             availableBuffers.offer(byteBuffer);
         }
     }

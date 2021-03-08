@@ -609,6 +609,7 @@ public class CommitLog {
     }
 
     /**
+     * 添加消息到提交日志文件，需要则刷盘，针对HA服务，则分发读请求（？？？）
      * @param msg
      * @return
      */
@@ -627,6 +628,7 @@ public class CommitLog {
         int queueId = msg.getQueueId();
 
         final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
+        //非事务类型，事务提交类型
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
             || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
             // Delay Delivery
@@ -634,11 +636,11 @@ public class CommitLog {
                 if (msg.getDelayTimeLevel() > this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) {
                     msg.setDelayTimeLevel(this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel());
                 }
-
+                //延时调度的队列id
                 topic = ScheduleMessageService.SCHEDULE_TOPIC;
                 queueId = ScheduleMessageService.delayLevel2QueueId(msg.getDelayTimeLevel());
 
-                // Backup real topic, queueId
+                // Backup real topic, queueId 备份实际的topic和queueId
                 MessageAccessor.putProperty(msg, MessageConst.PROPERTY_REAL_TOPIC, msg.getTopic());
                 MessageAccessor.putProperty(msg, MessageConst.PROPERTY_REAL_QUEUE_ID, String.valueOf(msg.getQueueId()));
                 msg.setPropertiesString(MessageDecoder.messageProperties2String(msg.getProperties()));
@@ -669,7 +671,7 @@ public class CommitLog {
                 beginTimeInLock = 0;
                 return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null);
             }
-
+            //添加消息到提交日志文件
             result = mappedFile.appendMessage(msg, this.appendMessageCallback);
             switch (result.getStatus()) {
                 case PUT_OK:
@@ -717,14 +719,16 @@ public class CommitLog {
         // Statistics
         storeStatsService.getSinglePutMessageTopicTimesTotal(msg.getTopic()).incrementAndGet();
         storeStatsService.getSinglePutMessageTopicSizeTotal(topic).addAndGet(result.getWroteBytes());
-
+        //处理自盘刷新
         handleDiskFlush(result, putMessageResult, msg);
+        //处理高可用
         handleHA(result, putMessageResult, msg);
 
         return putMessageResult;
     }
 
     /**
+     * 处理磁盘刷新
      * @param result
      * @param putMessageResult
      * @param messageExt
@@ -770,6 +774,7 @@ public class CommitLog {
                 // Determine whether to wait
                 if (service.isSlaveOK(result.getWroteOffset() + result.getWroteBytes())) {
                     GroupCommitRequest request = new GroupCommitRequest(result.getWroteOffset() + result.getWroteBytes());
+                    //添加分组提交请求的HA服务
                     service.putRequest(request);
                     service.getWaitNotifyObject().wakeupAll();
                     boolean flushOK =
@@ -958,6 +963,11 @@ public class CommitLog {
         this.mappedFileQueue.destroy();
     }
 
+    /**
+     * @param startOffset
+     * @param data
+     * @return
+     */
     public boolean appendData(long startOffset, byte[] data) {
         putMessageLock.lock();
         try {

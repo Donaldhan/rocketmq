@@ -168,19 +168,19 @@ public class DefaultMessageStore implements MessageStore {
         }
         //重新分发消息服务
         this.reputMessageService = new ReputMessageService();
-        //TODO
+        //调度延时消息服务，
         this.scheduleMessageService = new ScheduleMessageService(this);
-
+        //字节buffer pool
         this.transientStorePool = new TransientStorePool(messageStoreConfig);
 
         if (messageStoreConfig.isTransientStorePoolEnable()) {
+            //初始化字节buffer池
             this.transientStorePool.init();
         }
-
+        //启动mapperFile分配服务，拉取分配MappedFile请求，根据请求创建MappedFile
         this.allocateMappedFileService.start();
-
+        //启动消息索引服务
         this.indexService.start();
-
         this.dispatcherList = new LinkedList<>();
         //TODO read
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
@@ -384,6 +384,11 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 提交消息到日志
+     * @param msg Message instance to store
+     * @return
+     */
     public PutMessageResult putMessage(MessageExtBrokerInner msg) {
         if (this.shutdown) {
             log.warn("message store has shutdown, so putMessage is forbidden");
@@ -425,6 +430,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
+        //提交消息
         PutMessageResult result = this.commitLog.putMessage(msg);
 
         long eclipseTime = this.getSystemClock().now() - beginTime;

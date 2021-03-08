@@ -42,11 +42,29 @@ public class IndexService {
      * Maximum times to attempt index file creation.
      */
     private static final int MAX_TRY_IDX_CREATE = 3;
+    /**
+     *
+     */
     private final DefaultMessageStore defaultMessageStore;
+    /**
+     *
+     */
     private final int hashSlotNum;
+    /**
+     *
+     */
     private final int indexNum;
+    /**
+     *
+     */
     private final String storePath;
+    /**
+     *
+     */
     private final ArrayList<IndexFile> indexFileList = new ArrayList<IndexFile>();
+    /**
+     *
+     */
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     public IndexService(final DefaultMessageStore store) {

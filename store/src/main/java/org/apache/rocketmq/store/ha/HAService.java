@@ -184,7 +184,7 @@ public class HAService {
 
         /**
          * Starts listening to slave connections.
-         *
+         * 开始监听slave连接
          * @throws Exception If fails.
          */
         public void beginAccept() throws Exception {
@@ -225,6 +225,7 @@ public class HAService {
                     if (selected != null) {
                         for (SelectionKey k : selected) {
                             if ((k.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+                                //接收连接请求
                                 SocketChannel sc = ((ServerSocketChannel) k.channel()).accept();
 
                                 if (sc != null) {
@@ -234,6 +235,7 @@ public class HAService {
                                     try {
                                         HAConnection conn = new HAConnection(HAService.this, sc);
                                         conn.start();
+                                        //添加连接到Ha服务
                                         HAService.this.addConnection(conn);
                                     } catch (Exception e) {
                                         log.error("new HAConnection exception", e);
@@ -266,6 +268,7 @@ public class HAService {
 
     /**
      * GroupTransferService Service
+     * 分组传输服务
      */
     class GroupTransferService extends ServiceThread {
 
@@ -357,6 +360,9 @@ public class HAService {
         }
     }
 
+    /**
+     * Ha客户端
+     */
     class HAClient extends ServiceThread {
         private static final int READ_MAX_BUFFER_SIZE = 1024 * 1024 * 4;
         private final AtomicReference<String> masterAddress = new AtomicReference<>();
@@ -391,6 +397,10 @@ public class HAService {
             return needHeart;
         }
 
+        /**
+         * @param maxOffset
+         * @return
+         */
         private boolean reportSlaveMaxOffset(final long maxOffset) {
             this.reportOffset.position(0);
             this.reportOffset.limit(8);
@@ -400,6 +410,7 @@ public class HAService {
 
             for (int i = 0; i < 3 && this.reportOffset.hasRemaining(); i++) {
                 try {
+                    //报告slave最大offset
                     this.socketChannel.write(this.reportOffset);
                 } catch (IOException e) {
                     log.error(this.getServiceName()
@@ -434,6 +445,10 @@ public class HAService {
             this.byteBufferBackup = tmp;
         }
 
+        /**
+         * 处理读事件
+         * @return
+         */
         private boolean processReadEvent() {
             int readSizeZeroTimes = 0;
             while (this.byteBufferRead.hasRemaining()) {
@@ -442,6 +457,7 @@ public class HAService {
                     if (readSize > 0) {
                         lastWriteTimestamp = HAService.this.defaultMessageStore.getSystemClock().now();
                         readSizeZeroTimes = 0;
+                        //分发请求
                         boolean result = this.dispatchReadRequest();
                         if (!result) {
                             log.error("HAClient, dispatchReadRequest error");
@@ -464,6 +480,10 @@ public class HAService {
             return true;
         }
 
+        /**
+         * 分发读请求
+         * @return
+         */
         private boolean dispatchReadRequest() {
             final int msgHeaderSize = 8 + 4; // phyoffset + size
             int readSocketPos = this.byteBufferRead.position();
@@ -471,9 +491,10 @@ public class HAService {
             while (true) {
                 int diff = this.byteBufferRead.position() - this.dispatchPostion;
                 if (diff >= msgHeaderSize) {
+                    //master物理offset
                     long masterPhyOffset = this.byteBufferRead.getLong(this.dispatchPostion);
                     int bodySize = this.byteBufferRead.getInt(this.dispatchPostion + 8);
-
+                   //高可用的物理offset，salve
                     long slavePhyOffset = HAService.this.defaultMessageStore.getMaxPhyOffset();
 
                     if (slavePhyOffset != 0) {
@@ -488,7 +509,7 @@ public class HAService {
                         byte[] bodyData = new byte[bodySize];
                         this.byteBufferRead.position(this.dispatchPostion + msgHeaderSize);
                         this.byteBufferRead.get(bodyData);
-
+                       //写读请求到提交日志？？？
                         HAService.this.defaultMessageStore.appendToCommitLog(masterPhyOffset, bodyData);
 
                         this.byteBufferRead.position(readSocketPos);
@@ -512,6 +533,10 @@ public class HAService {
             return true;
         }
 
+        /**
+         * 报告salve最大offset
+         * @return
+         */
         private boolean reportSlaveMaxOffsetPlus() {
             boolean result = true;
             long currentPhyOffset = HAService.this.defaultMessageStore.getMaxPhyOffset();
