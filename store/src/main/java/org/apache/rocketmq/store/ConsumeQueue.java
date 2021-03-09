@@ -595,6 +595,9 @@ public class ConsumeQueue {
         return this.mappedFileQueue.getMaxOffset() / CQ_STORE_UNIT_SIZE;
     }
 
+    /**
+     *  检查MappedFile文件队列是否存在被破坏的情形（空指针）
+     */
     public void checkSelf() {
         mappedFileQueue.checkSelf();
         if (isExtReadEnable()) {

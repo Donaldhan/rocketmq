@@ -30,6 +30,7 @@ public abstract class ConfigManager {
     public abstract String encode();
 
     /**
+     * 加载配置
      * @return
      */
     public boolean load() {

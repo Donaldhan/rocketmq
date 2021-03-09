@@ -182,10 +182,10 @@ public class DefaultMessageStore implements MessageStore {
         //启动消息索引服务
         this.indexService.start();
         this.dispatcherList = new LinkedList<>();
-        //TODO read
+        //消息分发器
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
+        //消息索引分发器
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
-
         File file = new File(StorePathConfigHelper.getLockFile(messageStoreConfig.getStorePathRootDir()));
         MappedFile.ensureDirOK(file.getParent());
         lockFile = new RandomAccessFile(file, "rw");
@@ -202,6 +202,12 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * 加载消息存储相关的文件
+     * 1.配置文件
+     * 2.提交日志文件
+     * 3.消费者队列
+     * 4.索引文件
+     * 5.检查点文件
      * @throws IOException
      */
     public boolean load() {
@@ -210,23 +216,31 @@ public class DefaultMessageStore implements MessageStore {
         try {
             boolean lastExitOK = !this.isTempFileExist();
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
-
+            /**
+             *
+             * 1.加载配置文件；
+             * 2.解析延时等级
+             */
             if (null != scheduleMessageService) {
                 result = result && this.scheduleMessageService.load();
             }
 
             // load Commit Log
+            //加载提交日志目录下的日志文件
             result = result && this.commitLog.load();
 
             // load Consume Queue
+            //加载消费者队列信息
             result = result && this.loadConsumeQueue();
 
             if (result) {
+                //初始化检查点
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
-
+                //加载索引文件
                 this.indexService.load(lastExitOK);
-
+                //1.恢复消息队对应的映射文件的offset（刷新、提交等）
+                //2.矫正topic消息队列
                 this.recover(lastExitOK);
 
                 log.info("load over, and the max phy offset = {}", this.getMaxPhyOffset());
@@ -252,7 +266,7 @@ public class DefaultMessageStore implements MessageStore {
         if (lock == null || lock.isShared() || !lock.isValid()) {
             throw new RuntimeException("Lock failed,MQ already started");
         }
-
+        //加锁
         lockFile.getChannel().write(ByteBuffer.wrap("lock".getBytes()));
         lockFile.getChannel().force(true);
         {
@@ -308,8 +322,9 @@ public class DefaultMessageStore implements MessageStore {
             this.haService.start();
             this.handleScheduleMessageService(messageStoreConfig.getBrokerRole());
         }
-
+       //刷新最近的page（offset）对应的日志文件，如果需要则保存检查点
         this.flushConsumeQueueService.start();
+        //提交日志
         this.commitLog.start();
         this.storeStatsService.start();
 
@@ -446,6 +461,11 @@ public class DefaultMessageStore implements MessageStore {
         return result;
     }
 
+    /**
+     * 添加批量消息到消息队列映射文件
+     * @param messageExtBatch Message batch.
+     * @return
+     */
     public PutMessageResult putMessages(MessageExtBatch messageExtBatch) {
         if (this.shutdown) {
             log.warn("DefaultMessageStore has shutdown, so putMessages is forbidden");
@@ -487,6 +507,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
+        //提交批量消息到提交日志
         PutMessageResult result = this.commitLog.putMessages(messageExtBatch);
 
         long eclipseTime = this.getSystemClock().now() - beginTime;
@@ -1298,15 +1319,18 @@ public class DefaultMessageStore implements MessageStore {
         log.info(fileName + (result ? " create OK" : " already exists"));
     }
 
+    /**
+     *
+     */
     private void addScheduleTask() {
-
+        //清理过期文件
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 DefaultMessageStore.this.cleanFilesPeriodically();
             }
         }, 1000 * 60, this.messageStoreConfig.getCleanResourceInterval(), TimeUnit.MILLISECONDS);
-
+        // 检查MappedFile文件队列是否存在被破坏的情形（空指针）
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -1343,11 +1367,19 @@ public class DefaultMessageStore implements MessageStore {
         // }, 1, 1, TimeUnit.HOURS);
     }
 
+    /**
+     * 清理过期文件
+     */
     private void cleanFilesPeriodically() {
+        //删除过期文件
         this.cleanCommitLogService.run();
+        //清除消息队列过期文件（小于offset对应的日志文件及索引文件）
         this.cleanConsumeQueueService.run();
     }
 
+    /**
+     *  检查MappedFile文件队列是否存在被破坏的情形（空指针）
+     */
     private void checkSelf() {
         this.commitLog.checkSelf();
 
@@ -1368,6 +1400,10 @@ public class DefaultMessageStore implements MessageStore {
         return file.exists();
     }
 
+    /**
+     * 加载消费者队列信息
+     * @return
+     */
     private boolean loadConsumeQueue() {
         File dirLogic = new File(StorePathConfigHelper.getStorePathConsumeQueue(this.messageStoreConfig.getStorePathRootDir()));
         File[] fileTopicList = dirLogic.listFiles();
@@ -1405,15 +1441,23 @@ public class DefaultMessageStore implements MessageStore {
         return true;
     }
 
+    /**
+     * 恢复消费者队列，最大物理offset
+     * 1.恢复消息队对应的映射文件的offset（刷新、提交等）
+     * 2.矫正topic消息队列
+     * @param lastExitOK
+     */
     private void recover(final boolean lastExitOK) {
+        //恢复消费者队列，最大物理offset
         long maxPhyOffsetOfConsumeQueue = this.recoverConsumeQueue();
 
         if (lastExitOK) {
+            //主要恢复消息队对应的映射文件的offset（刷新、提交等）
             this.commitLog.recoverNormally(maxPhyOffsetOfConsumeQueue);
         } else {
             this.commitLog.recoverAbnormally(maxPhyOffsetOfConsumeQueue);
         }
-
+        //矫正topic消息队列
         this.recoverTopicQueueTable();
     }
 
@@ -1436,6 +1480,10 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 恢复消费者队列，最大物理offset
+     * @return
+     */
     private long recoverConsumeQueue() {
         long maxPhysicOffset = -1;
         for (ConcurrentMap<Integer, ConsumeQueue> maps : this.consumeQueueTable.values()) {
@@ -1450,6 +1498,9 @@ public class DefaultMessageStore implements MessageStore {
         return maxPhysicOffset;
     }
 
+    /**
+     * 矫正topic队列表
+     */
     public void recoverTopicQueueTable() {
         HashMap<String/* topic-queueid */, Long/* offset */> table = new HashMap<String, Long>(1024);
         long minPhyOffset = this.commitLog.getMinOffset();
@@ -1525,6 +1576,7 @@ public class DefaultMessageStore implements MessageStore {
             if (brokerRole == BrokerRole.SLAVE) {
                 this.scheduleMessageService.shutdown();
             } else {
+                //master，启动调度服务
                 this.scheduleMessageService.start();
             }
         }
@@ -1621,7 +1673,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         /**
-         *
+         * 删除过期文件
          */
         public void run() {
             try {

@@ -169,8 +169,14 @@ public class ScheduleMessageService extends ConfigManager {
         return this.encode(false);
     }
 
+    /**
+     * 1.加载配置文件；
+     * 2.解析延时等级
+     * @return
+     */
     public boolean load() {
         boolean result = super.load();
+        //解析延时等级
         result = result && this.parseDelayLevel();
         return result;
     }

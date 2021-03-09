@@ -81,6 +81,9 @@ public class MappedFileQueue {
         this.allocateMappedFileService = allocateMappedFileService;
     }
 
+    /**
+     * 检查MappedFile文件队列是否存在被破坏的情形（空指针）
+     */
     public void checkSelf() {
 
         if (!this.mappedFiles.isEmpty()) {

@@ -26,18 +26,33 @@ public class BrokerStats {
 
     private final DefaultMessageStore defaultMessageStore;
 
+    /**
+     *
+     */
     private volatile long msgPutTotalYesterdayMorning;
 
+    /**
+     *
+     */
     private volatile long msgPutTotalTodayMorning;
 
+    /**
+     *
+     */
     private volatile long msgGetTotalYesterdayMorning;
 
+    /**
+     *
+     */
     private volatile long msgGetTotalTodayMorning;
 
     public BrokerStats(DefaultMessageStore defaultMessageStore) {
         this.defaultMessageStore = defaultMessageStore;
     }
 
+    /**
+     * 记录broker消息状态
+     */
     public void record() {
         this.msgPutTotalYesterdayMorning = this.msgPutTotalTodayMorning;
         this.msgGetTotalYesterdayMorning = this.msgGetTotalTodayMorning;
