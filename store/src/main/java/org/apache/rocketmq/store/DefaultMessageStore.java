@@ -786,6 +786,11 @@ public class DefaultMessageStore implements MessageStore {
         return 0;
     }
 
+    /**
+     * 查询消息
+     * @param commitLogOffset physical offset.
+     * @return
+     */
     public MessageExt lookMessageByOffset(long commitLogOffset) {
         SelectMappedBufferResult sbr = this.commitLog.getMessage(commitLogOffset, 4);
         if (null != sbr) {
@@ -801,6 +806,11 @@ public class DefaultMessageStore implements MessageStore {
         return null;
     }
 
+    /**
+     * 从offest选择一个消息
+     * @param commitLogOffset commit log offset.
+     * @return
+     */
     @Override
     public SelectMappedBufferResult selectOneMessageByOffset(long commitLogOffset) {
         SelectMappedBufferResult sbr = this.commitLog.getMessage(commitLogOffset, 4);
@@ -954,6 +964,15 @@ public class DefaultMessageStore implements MessageStore {
         this.cleanCommitLogService.excuteDeleteFilesManualy();
     }
 
+    /**
+     * 根据时间戳查询topic相应的消息
+     * @param topic  topic of the message.
+     * @param key    message key.
+     * @param maxNum maximum number of the messages possible.
+     * @param begin  begin timestamp.
+     * @param end    end timestamp.
+     * @return
+     */
     @Override
     public QueryMessageResult queryMessage(String topic, String key, int maxNum, long begin, long end) {
         QueryMessageResult queryMessageResult = new QueryMessageResult();
@@ -961,6 +980,7 @@ public class DefaultMessageStore implements MessageStore {
         long lastQueryMsgTime = end;
 
         for (int i = 0; i < 3; i++) {
+            //查询topic的队列offset和最大的offset，及时间戳
             QueryOffsetResult queryOffsetResult = this.indexService.queryOffset(topic, key, maxNum, begin, lastQueryMsgTime);
             if (queryOffsetResult.getPhyOffsets().isEmpty()) {
                 break;
@@ -977,6 +997,7 @@ public class DefaultMessageStore implements MessageStore {
                 try {
 
                     boolean match = true;
+                    //查询消息
                     MessageExt msg = this.lookMessageByOffset(offset);
                     if (0 == m) {
                         lastQueryMsgTime = msg.getStoreTimestamp();
@@ -993,6 +1014,7 @@ public class DefaultMessageStore implements MessageStore {
 //                    }
 
                     if (match) {
+                        //读取提交日志数据
                         SelectMappedBufferResult result = this.commitLog.getData(offset, false);
                         if (result != null) {
                             int size = result.getByteBuffer().getInt(0);

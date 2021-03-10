@@ -184,11 +184,21 @@ public class IndexService {
         }
     }
 
+    /**
+     * 查询topic的队列offset和最大的offset，及时间戳
+     * @param topic
+     * @param key
+     * @param maxNum
+     * @param begin
+     * @param end
+     * @return
+     */
     public QueryOffsetResult queryOffset(String topic, String key, int maxNum, long begin, long end) {
         List<Long> phyOffsets = new ArrayList<Long>(maxNum);
 
         long indexLastUpdateTimestamp = 0;
         long indexLastUpdatePhyoffset = 0;
+        //最大消息系
         maxNum = Math.min(maxNum, this.defaultMessageStore.getMessageStoreConfig().getMaxMsgsNumBatch());
         try {
             this.readWriteLock.readLock().lock();
@@ -197,12 +207,13 @@ public class IndexService {
                     IndexFile f = this.indexFileList.get(i - 1);
                     boolean lastFile = i == this.indexFileList.size();
                     if (lastFile) {
+                        //索引的最大时间戳和物理offset
                         indexLastUpdateTimestamp = f.getEndTimestamp();
                         indexLastUpdatePhyoffset = f.getEndPhyOffset();
                     }
 
                     if (f.isTimeMatched(begin, end)) {
-
+                        //查询topic的待读物理offset
                         f.selectPhyOffset(phyOffsets, buildKey(topic, key), maxNum, begin, end, lastFile);
                     }
 

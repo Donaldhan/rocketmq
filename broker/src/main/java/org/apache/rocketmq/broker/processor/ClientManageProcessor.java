@@ -42,6 +42,9 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+/**
+ *
+ */
 public class ClientManageProcessor implements NettyRequestProcessor {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -55,10 +58,13 @@ public class ClientManageProcessor implements NettyRequestProcessor {
         throws RemotingCommandException {
         switch (request.getCode()) {
             case RequestCode.HEART_BEAT:
+                //处理心跳,注册消费者或生产者
                 return this.heartBeat(ctx, request);
             case RequestCode.UNREGISTER_CLIENT:
+                //注销生产者或消费者
                 return this.unregisterClient(ctx, request);
             case RequestCode.CHECK_CLIENT_CONFIG:
+                //检查客户端配置
                 return this.checkClientConfig(ctx, request);
             default:
                 break;
@@ -72,7 +78,7 @@ public class ClientManageProcessor implements NettyRequestProcessor {
     }
 
     /**
-     * 处理心跳
+     * 处理心跳,注册消费者或生产者
      * @param ctx
      * @param request
      * @return
@@ -88,6 +94,7 @@ public class ClientManageProcessor implements NettyRequestProcessor {
         );
 
         for (ConsumerData data : heartbeatData.getConsumerDataSet()) {
+            //查询分组订阅配置
             SubscriptionGroupConfig subscriptionGroupConfig =
                 this.brokerController.getSubscriptionGroupManager().findSubscriptionGroupConfig(
                     data.getGroupName());
@@ -99,12 +106,13 @@ public class ClientManageProcessor implements NettyRequestProcessor {
                     topicSysFlag = TopicSysFlag.buildSysFlag(false, true);
                 }
                 String newTopic = MixAll.getRetryTopic(data.getGroupName());
+                //创建重试队列
                 this.brokerController.getTopicConfigManager().createTopicInSendMessageBackMethod(
                     newTopic,
                     subscriptionGroupConfig.getRetryQueueNums(),
                     PermName.PERM_WRITE | PermName.PERM_READ, topicSysFlag);
             }
-
+           //注册消费者
             boolean changed = this.brokerController.getConsumerManager().registerConsumer(
                 data.getGroupName(),
                 clientChannelInfo,
@@ -124,6 +132,7 @@ public class ClientManageProcessor implements NettyRequestProcessor {
         }
 
         for (ProducerData data : heartbeatData.getProducerDataSet()) {
+            //注册生产者
             this.brokerController.getProducerManager().registerProducer(data.getGroupName(),
                 clientChannelInfo);
         }
@@ -132,6 +141,13 @@ public class ClientManageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 注销生产者或消费者
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand unregisterClient(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =
@@ -170,6 +186,13 @@ public class ClientManageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 检查客户单配置
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand checkClientConfig(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -193,6 +216,7 @@ public class ClientManageProcessor implements NettyRequestProcessor {
             }
 
             try {
+                //校验配置，比如基于SQL92
                 FilterFactory.INSTANCE.get(subscriptionData.getExpressionType()).compile(subscriptionData.getSubString());
             } catch (Exception e) {
                 log.warn("Client {}@{} filter message, but failed to compile expression! sub={}, error={}",

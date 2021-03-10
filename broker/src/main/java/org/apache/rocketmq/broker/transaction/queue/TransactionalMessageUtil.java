@@ -24,10 +24,18 @@ public class TransactionalMessageUtil {
     public static final String REMOVETAG = "d";
     public static Charset charset = Charset.forName("utf-8");
 
+    /**
+     * 半消息操作topic（消息删除？？）
+     * @return
+     */
     public static String buildOpTopic() {
         return MixAll.RMQ_SYS_TRANS_OP_HALF_TOPIC;
     }
 
+    /**
+     * 半消息系统TOPIC
+     * @return
+     */
     public static String buildHalfTopic() {
         return MixAll.RMQ_SYS_TRANS_HALF_TOPIC;
     }

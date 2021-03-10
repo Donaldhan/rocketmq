@@ -46,15 +46,27 @@ public class ConsumerManageProcessor implements NettyRequestProcessor {
         this.brokerController = brokerController;
     }
 
+    /**
+     * 1.获取分组消费者id;
+     * 2.更新消费者对应的topic队列offset;
+     * 3.查询消费者的topic对应queue的offset
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     @Override
     public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         switch (request.getCode()) {
             case RequestCode.GET_CONSUMER_LIST_BY_GROUP:
+                //获取分组消费者id
                 return this.getConsumerListByGroup(ctx, request);
             case RequestCode.UPDATE_CONSUMER_OFFSET:
+                //更新消费者对应的topic队列offset
                 return this.updateConsumerOffset(ctx, request);
             case RequestCode.QUERY_CONSUMER_OFFSET:
+                //查询消费者的topic对应queue的offset
                 return this.queryConsumerOffset(ctx, request);
             default:
                 break;
@@ -67,6 +79,13 @@ public class ConsumerManageProcessor implements NettyRequestProcessor {
         return false;
     }
 
+    /**
+     * 获取分组消费者id
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand getConsumerListByGroup(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =
@@ -101,6 +120,13 @@ public class ConsumerManageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 更新消费者对应的topic队列offset
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     private RemotingCommand updateConsumerOffset(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =
@@ -115,6 +141,13 @@ public class ConsumerManageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 查询消费者的topic对应queue的offset
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     private RemotingCommand queryConsumerOffset(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =

@@ -139,6 +139,9 @@ public class BrokerController {
     private final ConsumerFilterManager consumerFilterManager;
     private final ProducerManager producerManager;
     private final ClientHousekeepingService clientHousekeepingService;
+    /**
+     * 拉取消息请求处理器
+     */
     private final PullMessageProcessor pullMessageProcessor;
     private final PullRequestHoldService pullRequestHoldService;
     private final MessageArrivingListener messageArrivingListener;
@@ -162,7 +165,13 @@ public class BrokerController {
     private final List<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>();
     private final List<ConsumeMessageHook> consumeMessageHookList = new ArrayList<ConsumeMessageHook>();
     private MessageStore messageStore;
+    /**
+     *
+     */
     private RemotingServer remotingServer;
+    /**
+     *
+     */
     private RemotingServer fastRemotingServer;
     private TopicConfigManager topicConfigManager;
     private ExecutorService sendMessageExecutor;
@@ -560,6 +569,9 @@ public class BrokerController {
         return result;
     }
 
+    /**
+     *
+     */
     private void initialTransaction() {
         this.transactionalMessageService = ServiceProvider.loadClass(ServiceProvider.TRANSACTION_SERVICE_ID, TransactionalMessageService.class);
         if (null == this.transactionalMessageService) {
@@ -572,9 +584,13 @@ public class BrokerController {
             log.warn("Load default discard message hook service: {}", DefaultTransactionalMessageCheckListener.class.getSimpleName());
         }
         this.transactionalMessageCheckListener.setBrokerController(this);
+        //TODO
         this.transactionalMessageCheckService = new TransactionalMessageCheckService(this);
     }
 
+    /**
+     *
+     */
     private void initialAcl() {
         if (!this.brokerConfig.isAclEnable()) {
             log.info("The broker dose not enable acl");
@@ -605,6 +621,9 @@ public class BrokerController {
     }
 
 
+    /**
+     *
+     */
     private void initialRpcHooks() {
 
         List<RPCHook> rpcHooks = ServiceProvider.load(ServiceProvider.RPC_HOOK_ID, RPCHook.class);
@@ -626,7 +645,7 @@ public class BrokerController {
         SendMessageProcessor sendProcessor = new SendMessageProcessor(this);
         sendProcessor.registerSendMessageHook(sendMessageHookList);
         sendProcessor.registerConsumeMessageHook(consumeMessageHookList);
-        //处理发送消息请求（批量和非批量）
+        //处理发送消息请求（批量和非批量）、消费成功back
         this.remotingServer.registerProcessor(RequestCode.SEND_MESSAGE, sendProcessor, this.sendMessageExecutor);
         this.remotingServer.registerProcessor(RequestCode.SEND_MESSAGE_V2, sendProcessor, this.sendMessageExecutor);
         this.remotingServer.registerProcessor(RequestCode.SEND_BATCH_MESSAGE, sendProcessor, this.sendMessageExecutor);
@@ -636,6 +655,7 @@ public class BrokerController {
         this.fastRemotingServer.registerProcessor(RequestCode.SEND_BATCH_MESSAGE, sendProcessor, this.sendMessageExecutor);
         this.fastRemotingServer.registerProcessor(RequestCode.CONSUMER_SEND_MSG_BACK, sendProcessor, this.sendMessageExecutor);
         /**
+         * 处理消费者拉取消息请求
          * PullMessageProcessor
          */
         this.remotingServer.registerProcessor(RequestCode.PULL_MESSAGE, this.pullMessageProcessor, this.pullMessageExecutor);
@@ -643,6 +663,7 @@ public class BrokerController {
 
         /**
          * QueryMessageProcessor
+         * 处理消息查询请求
          */
         NettyRequestProcessor queryProcessor = new QueryMessageProcessor(this);
         this.remotingServer.registerProcessor(RequestCode.QUERY_MESSAGE, queryProcessor, this.queryMessageExecutor);
@@ -653,6 +674,7 @@ public class BrokerController {
 
         /**
          * ClientManageProcessor
+         * 消费者、生产者的注册、注销，检查客户端配置
          */
         ClientManageProcessor clientProcessor = new ClientManageProcessor(this);
         this.remotingServer.registerProcessor(RequestCode.HEART_BEAT, clientProcessor, this.heartbeatExecutor);
@@ -665,6 +687,9 @@ public class BrokerController {
 
         /**
          * ConsumerManageProcessor
+         *  1.获取分组消费者id;
+         *  2.更新消费者对应的topic队列offset;
+         *  3.查询消费者的topic对应queue的offset
          */
         ConsumerManageProcessor consumerManageProcessor = new ConsumerManageProcessor(this);
         this.remotingServer.registerProcessor(RequestCode.GET_CONSUMER_LIST_BY_GROUP, consumerManageProcessor, this.consumerManageExecutor);
@@ -677,11 +702,16 @@ public class BrokerController {
 
         /**
          * EndTransactionProcessor
+         * 处理终结事务请求（事务提交和回滚）；
+         * TODO
+         * 什么时候删除半消息？？？
+         *
          */
         this.remotingServer.registerProcessor(RequestCode.END_TRANSACTION, new EndTransactionProcessor(this), this.endTransactionExecutor);
         this.fastRemotingServer.registerProcessor(RequestCode.END_TRANSACTION, new EndTransactionProcessor(this), this.endTransactionExecutor);
 
         /**
+         * TODO
          * Default
          */
         AdminBrokerProcessor adminProcessor = new AdminBrokerProcessor(this);

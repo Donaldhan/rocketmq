@@ -52,6 +52,7 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         throws RemotingCommandException {
         switch (request.getCode()) {
             case RequestCode.QUERY_MESSAGE:
+                //查询消息（根据topic和时间戳，查询消息数据）
                 return this.queryMessage(ctx, request);
             case RequestCode.VIEW_MESSAGE_BY_ID:
                 return this.viewMessageById(ctx, request);
@@ -67,6 +68,13 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         return false;
     }
 
+    /**
+     * 根据topic和时间戳，查询消息数据
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand queryMessage(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =
@@ -78,12 +86,12 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
                 .decodeCommandCustomHeader(QueryMessageRequestHeader.class);
 
         response.setOpaque(request.getOpaque());
-
+        //消息唯一key
         String isUniqueKey = request.getExtFields().get(MixAll.UNIQUE_MSG_QUERY_FLAG);
         if (isUniqueKey != null && isUniqueKey.equals("true")) {
             requestHeader.setMaxNum(this.brokerController.getMessageStoreConfig().getDefaultQueryMaxNum());
         }
-
+        //根据时间戳查询topic相应的消息
         final QueryMessageResult queryMessageResult =
             this.brokerController.getMessageStore().queryMessage(requestHeader.getTopic(),
                 requestHeader.getKey(), requestHeader.getMaxNum(), requestHeader.getBeginTimestamp(),
@@ -98,6 +106,7 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
             response.setRemark(null);
 
             try {
+                //将消息数据包装证文件Region发送到消费者
                 FileRegion fileRegion =
                     new QueryMessageTransfer(response.encodeHeader(queryMessageResult
                         .getBufferTotalSize()), queryMessageResult);
@@ -123,6 +132,12 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand viewMessageById(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -130,7 +145,7 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
             (ViewMessageRequestHeader) request.decodeCommandCustomHeader(ViewMessageRequestHeader.class);
 
         response.setOpaque(request.getOpaque());
-
+        //根据offest查询消息
         final SelectMappedBufferResult selectMappedBufferResult =
             this.brokerController.getMessageStore().selectOneMessageByOffset(requestHeader.getOffset());
         if (selectMappedBufferResult != null) {
@@ -138,9 +153,11 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
             response.setRemark(null);
 
             try {
+                //包装消息为FileRegion
                 FileRegion fileRegion =
                     new OneMessageTransfer(response.encodeHeader(selectMappedBufferResult.getSize()),
                         selectMappedBufferResult);
+                //发送消息数据到消费者
                 ctx.channel().writeAndFlush(fileRegion).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

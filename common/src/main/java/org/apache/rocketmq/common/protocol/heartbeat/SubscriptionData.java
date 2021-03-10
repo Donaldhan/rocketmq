@@ -36,6 +36,9 @@ public class SubscriptionData implements Comparable<SubscriptionData> {
     public final static String SUB_ALL = "*";
     private boolean classFilterMode = false;
     private String topic;
+    /**
+     *
+     */
     private String subString;
     /**
      * 订阅消息的tag集

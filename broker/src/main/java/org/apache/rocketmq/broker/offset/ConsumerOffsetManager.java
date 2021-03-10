@@ -180,7 +180,7 @@ public class ConsumerOffsetManager extends ConfigManager {
     }
 
     /**
-     * 查询消费者的topic对应queue的id
+     * 查询消费者的topic对应queue的offset
      * @param group
      * @param topic
      * @param queueId

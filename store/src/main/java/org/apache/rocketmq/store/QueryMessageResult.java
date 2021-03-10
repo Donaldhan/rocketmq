@@ -25,8 +25,17 @@ public class QueryMessageResult {
     private final List<SelectMappedBufferResult> messageMapedList =
         new ArrayList<SelectMappedBufferResult>(100);
 
+    /**
+     *
+     */
     private final List<ByteBuffer> messageBufferList = new ArrayList<ByteBuffer>(100);
+    /**
+     *
+     */
     private long indexLastUpdateTimestamp;
+    /**
+     *
+     */
     private long indexLastUpdatePhyoffset;
 
     private int bufferTotalSize = 0;

@@ -49,9 +49,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ *
+ */
 public class TransactionalMessageBridge {
     private static final InternalLogger LOGGER = InnerLoggerFactory.getLogger(LoggerName.TRANSACTION_LOGGER_NAME);
 
+    /**
+     * 原始事务消息队列，与操作消息队列（删除半消息）
+     */
     private final ConcurrentHashMap<MessageQueue, MessageQueue> opQueueMap = new ConcurrentHashMap<>();
     private final BrokerController brokerController;
     private final MessageStore store;
@@ -195,6 +201,7 @@ public class TransactionalMessageBridge {
     }
 
     /**
+     * 解析盘消息
      * @param msgInner
      * @return
      */
@@ -204,6 +211,7 @@ public class TransactionalMessageBridge {
         //重写队列信息
         MessageAccessor.putProperty(msgInner, MessageConst.PROPERTY_REAL_QUEUE_ID,
             String.valueOf(msgInner.getQueueId()));
+        //重置事务类型非事务
         msgInner.setSysFlag(
             MessageSysFlag.resetTransactionValue(msgInner.getSysFlag(), MessageSysFlag.TRANSACTION_NOT_TYPE));
         msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic());
@@ -212,10 +220,18 @@ public class TransactionalMessageBridge {
         return msgInner;
     }
 
+    /**
+     *  写一个删除事务消息到提交日志
+     * @param messageExt
+     * @param opType
+     * @return
+     */
     public boolean putOpMessage(MessageExt messageExt, String opType) {
+        //原始消息队列
         MessageQueue messageQueue = new MessageQueue(messageExt.getTopic(),
             this.brokerController.getBrokerConfig().getBrokerName(), messageExt.getQueueId());
         if (TransactionalMessageUtil.REMOVETAG.equals(opType)) {
+            //删除消息操作
             return addRemoveTagInTransactionOp(messageExt, messageQueue);
         }
         return true;
@@ -226,6 +242,11 @@ public class TransactionalMessageBridge {
         return store.putMessage(messageInner);
     }
 
+    /**
+     * 提交消息到日志
+     * @param messageInner
+     * @return
+     */
     public boolean putMessage(MessageExtBrokerInner messageInner) {
         PutMessageResult putMessageResult = store.putMessage(messageInner);
         if (putMessageResult != null
@@ -272,6 +293,11 @@ public class TransactionalMessageBridge {
         return msgInner;
     }
 
+    /**
+     * @param message
+     * @param messageQueue
+     * @return
+     */
     private MessageExtBrokerInner makeOpMessageInner(Message message, MessageQueue messageQueue) {
         MessageExtBrokerInner msgInner = new MessageExtBrokerInner();
         msgInner.setTopic(message.getTopic());
@@ -302,20 +328,29 @@ public class TransactionalMessageBridge {
     /**
      * Use this function while transaction msg is committed or rollback write a flag 'd' to operation queue for the
      * msg's offset
-     *
+     *  使用场景：
+     *  1.事务消息提交；
+     *  2.事务回滚，写一个'd' 标志的消息到操作队列
      * @param messageExt Op message
      * @param messageQueue Op message queue
      * @return This method will always return true.
      */
     private boolean addRemoveTagInTransactionOp(MessageExt messageExt, MessageQueue messageQueue) {
+        //构建系统事务操作topic对应的消息
         Message message = new Message(TransactionalMessageUtil.buildOpTopic(), TransactionalMessageUtil.REMOVETAG,
             String.valueOf(messageExt.getQueueOffset()).getBytes(TransactionalMessageUtil.charset));
         writeOp(message, messageQueue);
         return true;
     }
 
+    /**
+     * 写一个删除事务消息到提交日志
+     * @param message
+     * @param mq
+     */
     private void writeOp(Message message, MessageQueue mq) {
         MessageQueue opQueue;
+        //建立原始队列与操作队列的关心
         if (opQueueMap.containsKey(mq)) {
             opQueue = opQueueMap.get(mq);
         } else {
@@ -328,9 +363,15 @@ public class TransactionalMessageBridge {
         if (opQueue == null) {
             opQueue = new MessageQueue(TransactionalMessageUtil.buildOpTopic(), mq.getBrokerName(), mq.getQueueId());
         }
+        //提交消息到日志
         putMessage(makeOpMessageInner(message, opQueue));
     }
 
+    /**
+     * 获取半消息操作队列
+     * @param halfMQ
+     * @return
+     */
     private MessageQueue getOpQueueByHalf(MessageQueue halfMQ) {
         MessageQueue opQueue = new MessageQueue();
         opQueue.setTopic(TransactionalMessageUtil.buildOpTopic());

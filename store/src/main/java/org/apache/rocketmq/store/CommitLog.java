@@ -207,6 +207,7 @@ public class CommitLog {
     }
 
     /**
+     * 读取提交日志数据
      * @param offset
      * @param returnFirstOnNotFound
      * @return
@@ -938,6 +939,7 @@ public class CommitLog {
     }
 
     /**
+     * 从offset读取消息
      * @param offset
      * @param size
      * @return

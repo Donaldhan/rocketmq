@@ -462,8 +462,14 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
         return response;
     }
 
+    /**
+     * 删除半消息
+     * @param msgExt
+     * @return
+     */
     @Override
     public boolean deletePrepareMessage(MessageExt msgExt) {
+        // 写一个删除事务消息到提交日志
         if (this.transactionalMessageBridge.putOpMessage(msgExt, TransactionalMessageUtil.REMOVETAG)) {
             log.info("Transaction op message write successfully. messageId={}, queueId={} msgExt:{}", msgExt.getMsgId(), msgExt.getQueueId(), msgExt);
             return true;

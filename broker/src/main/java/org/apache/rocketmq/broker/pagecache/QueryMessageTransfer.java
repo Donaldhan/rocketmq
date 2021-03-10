@@ -24,8 +24,17 @@ import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import org.apache.rocketmq.store.QueryMessageResult;
 
+/**
+ *
+ */
 public class QueryMessageTransfer extends AbstractReferenceCounted implements FileRegion {
+    /**
+     *
+     */
     private final ByteBuffer byteBufferHeader;
+    /**
+     *
+     */
     private final QueryMessageResult queryMessageResult;
 
     /**
@@ -58,6 +67,13 @@ public class QueryMessageTransfer extends AbstractReferenceCounted implements Fi
         return byteBufferHeader.limit() + this.queryMessageResult.getBufferTotalSize();
     }
 
+    /**
+     * 发送消息数据到字节通道
+     * @param target
+     * @param position
+     * @return
+     * @throws IOException
+     */
     @Override
     public long transferTo(WritableByteChannel target, long position) throws IOException {
         if (this.byteBufferHeader.hasRemaining()) {

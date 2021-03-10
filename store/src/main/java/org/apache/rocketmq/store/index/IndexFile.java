@@ -188,13 +188,30 @@ public class IndexFile {
         return this.indexHeader.getEndPhyOffset();
     }
 
+    /**
+     * @param begin
+     * @param end
+     * @return
+     */
     public boolean isTimeMatched(final long begin, final long end) {
+//        begin，end在索引时间戳区间之外
         boolean result = begin < this.indexHeader.getBeginTimestamp() && end > this.indexHeader.getEndTimestamp();
+        //begin在两者之间
         result = result || (begin >= this.indexHeader.getBeginTimestamp() && begin <= this.indexHeader.getEndTimestamp());
+        //end在两者之间
         result = result || (end >= this.indexHeader.getBeginTimestamp() && end <= this.indexHeader.getEndTimestamp());
         return result;
     }
 
+    /**
+     * 查询topic的待读物理offset
+     * @param phyOffsets topic的待读物理offset（queue）
+     * @param key
+     * @param maxNum
+     * @param begin
+     * @param end
+     * @param lock
+     */
     public void selectPhyOffset(final List<Long> phyOffsets, final String key, final int maxNum,
         final long begin, final long end, boolean lock) {
         if (this.mappedFile.hold()) {
@@ -243,6 +260,7 @@ public class IndexFile {
                         boolean timeMatched = (timeRead >= begin) && (timeRead <= end);
 
                         if (keyHash == keyHashRead && timeMatched) {
+                            //物理索引
                             phyOffsets.add(phyOffsetRead);
                         }
 
